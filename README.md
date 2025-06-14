@@ -112,7 +112,7 @@ rn-rpa-app/
 🎬 演示视频
 
 <div align="center">
-[![功能演示](https://img.shields.io/badge/🎥_观看演示-点击播放-red.svg)](https://www.bilibili.com/video/BV1ucMUzxEfC/)
+[![功能演示](https://img.shields.io/badge/🎥_观看演示-点击播放-red.svg)](https://www.bilibili.com/video/BV1ucMUzxEfC)
 
 </div>
 
