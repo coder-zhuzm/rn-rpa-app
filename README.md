@@ -109,10 +109,13 @@ rn-rpa-app/
 
 </div>
 
-🎬 演示视频
+### 🎬 演示视频
 
 <div align="center">
-[![功能演示](https://img.shields.io/badge/🎥_观看演示-点击播放-red.svg)](https://www.bilibili.com/video/BV1ucMUzxEfC)
+
+[![功能演示视频](https://img.shields.io/badge/🎥_B站观看-Auto%20RPA%20App%20演示-ff6b96.svg?style=for-the-badge&logo=bilibili)](https://www.bilibili.com/video/BV1ucMUzxEfC)
+
+**点击上方按钮观看完整功能演示 ↑**
 
 </div>
 
