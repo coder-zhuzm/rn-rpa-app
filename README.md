@@ -103,17 +103,29 @@ rn-rpa-app/
 
 <div align="center">
 
-| 主界面 | Web调试界面 | 脚本执行 |
-|:---:|:---:|:---:|
-| ![主界面](./assets/images/app-screenshot-1.png) | ![Web调试](./assets/images/app-screenshot-2.png) | ![脚本执行](./assets/images/script-execution.png) |
+| 主界面 | Web调试界面 |
+|:---:|:---:|
+| ![主界面](./assets/images/app-screenshot-1.png) | ![Web调试](./assets/images/app-screenshot-2.png) |
 
 </div>
+
+<iframe
+  src="//player.bilibili.com/player.html?bvid=BV1ucMUzxEfC&page=1"
+  scrolling="no"
+  border="0"
+  frameborder="no"
+  framespacing="0"
+  allowfullscreen="true"
+  width="100%" 
+  height="500px">
+</iframe>
+
+
 
 ### 🎬 演示视频
 
 <div align="center">
-
-[![功能演示](https://img.shields.io/badge/🎥_观看演示-点击播放-red.svg)](https://github.com/coder-zhuzm/rn-rpa-app/releases/download/Recordscreen/show.mp4)
+[![功能演示](https://img.shields.io/badge/🎥_观看演示-点击播放-red.svg)](https://www.bilibili.com/video/BV1ucMUzxEfC/?share_source=copy_web&vd_source=5a1d5853ae6ef15a3c31cf6156185269)
 
 </div>
 
