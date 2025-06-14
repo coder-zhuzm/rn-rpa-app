@@ -10,4 +10,4 @@ rn-rpa-app
 
 ### 录屏展示
 
-<video src="./assets/video/show.mov" controls width="720"></video>
+<video src="./assets/video/show.mp4" controls width="720"></video>
