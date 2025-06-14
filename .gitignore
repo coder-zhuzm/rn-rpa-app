@@ -1,0 +1,323 @@
+# ========================================
+# RPA App 项目通用忽略文件
+# ========================================
+
+# 系统文件
+# ========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE 和编辑器
+# ========================================
+# Visual Studio Code
+.vscode/
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
+*.code-workspace
+
+# IntelliJ IDEA / WebStorm / Android Studio
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Xcode
+build/
+DerivedData/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# Eclipse
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+
+# Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# React Native / Node.js
+# ========================================
+# Dependencies
+node_modules/
+*/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Package managers
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+build/
+dist/
+*.tgz
+*.tar.gz
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# Logs
+logs
+*.log
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Android
+# ========================================
+# Gradle files
+.gradle/
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Android Studio generated files
+captures/
+*.hprof
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services (e.g. APIs or Firebase)
+google-services.json
+
+# iOS
+# ========================================
+# Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+/*.gcno
+**/xcshareddata/WorkspaceSettings.xcsettings
+
+# iOS build artifacts
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# CocoaPods
+/ios/Pods/
+ios/Podfile.lock
+
+# Temporary files
+# ========================================
+tmp/
+temp/
+*.tmp
+*.temp
+.cache/
+
+# Backup files
+# ========================================
+*.bak
+*.backup
+*.orig
+*~
+
+# Web 相关
+# ========================================
+# Webpack
+.webpack/
+
+# Parcel
+.parcel-cache/
+
+# Static files
+public/static/
+static/
+
+# Storybook build outputs
+storybook-static
+
+# TypeScript
+# ========================================
+*.tsbuildinfo
+
+# ESLint
+# ========================================
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# JetBrains IDE
+.idea/
+
+# 测试相关
+# ========================================
+# Jest
+coverage/
+__tests__/coverage/
+
+# 项目特定忽略
+# ========================================
+# Web调试相关临时文件
+RPAApp/src/web-debug/public/*.log
+RPAApp/src/web-debug/logs/
+
+# 测试文件
+test-*.js
+debug-*.js
+*.test.js.backup
+
+# 文档临时文件
+*.md.backup
+*.md.tmp
+
+# 服务器相关
+server.log
+access.log
+error.log
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 配置文件备份
+config.backup.*
+settings.backup.*
+
+# 自动生成的文件
+generated/
+auto-generated/
+
+# 压缩文件
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# 证书和密钥文件
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+
+# 第三方库和插件
+vendor/
+plugins/
+addons/
+
+# 运行时创建的文件
+runtime/
+cache/
+sessions/ 
