@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPA 远程调试界面</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .status-badge.connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+            transition: background-color 0.2s;
+        }
+
+        button.primary {
+            background-color: #007AFF;
+            color: white;
+        }
+
+        button.secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        button.danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
+        }
+
+        .result-success {
+            border-left-color: #28a745;
+        }
+
+        .result-error {
+            border-left-color: #dc3545;
+        }
+
+        .result-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .result-content {
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .examples-container {
+            margin-top: 20px;
+        }
+
+        .example-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .example-item:hover {
+            background-color: #e0e0e0;
+        }
+
+        .connection-form {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .connection-form input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>RPA 远程调试界面</h1>
+
+        <div class="connection-form">
+            <input type="text" id="serverUrl" placeholder="服务器地址" value="http://localhost:8080">
+            <button class="primary" id="checkConnection">检查连接</button>
+            <button class="secondary" id="testXHR">测试XHR连接</button>
+            <button class="primary" id="useProxy">使用代理连接</button>
+        </div>
+
+        <div id="statusBadge" class="status-badge disconnected">未连接</div>
+
+        <div class="form-group">
+            <label for="scriptContent">脚本内容：</label>
+            <textarea id="scriptContent" placeholder="// 在此输入要执行的 JavaScript 代码
+// 示例:
+console.log('Hello from RPA!');
+RPAServiceModule.launchSettings();
+return '脚本执行完成 ✅';"></textarea>
+
+            <div class="button-group">
+                <button class="primary" id="executeBtn">执行脚本</button>
+                <button class="secondary" id="clearBtn">清空</button>
+            </div>
+        </div>
+
+        <div id="resultContainer" class="result-container" style="display: none;">
+            <div class="result-title">执行结果：</div>
+            <div id="resultContent" class="result-content"></div>
+        </div>
+
+        <div class="examples-container">
+            <h3>示例脚本：</h3>
+            <div class="example-item" data-script-key="launchSettings">
+                打开系统设置
+            </div>
+            <div class="example-item" data-script-key="launchWifiSettings">
+                打开 WiFi 设置
+            </div>
+            <div class="example-item" data-script-key="launchBluetoothSettings">
+                打开蓝牙设置
+            </div>
+            <div class="example-item" data-script-key="launchAppByPackage">
+                打开指定包名的应用
+            </div>
+            <div class="example-item" data-script-key="launchBrowser">
+                打开浏览器
+            </div>
+            <div class="example-item" data-script-key="launchQQ">
+                打开QQ应用
+            </div>
+            <div class="example-item" data-script-key="launchWeChat">
+                打开微信应用
+            </div>
+            <div class="example-item" data-script-key="customExample">
+                自定义示例脚本
+            </div>
+            <div class="example-item" data-script-key="multiStepExample">
+                多步骤操作示例
+            </div>
+            <div class="example-item" data-script-key="helloWorld">
+                Hello World测试
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入脚本配置文件 -->
+    <script src="scripts-config.js"></script>
+    
+    <script>
+        // 使用从外部文件加载的脚本配置
+        const scripts = window.RPAScripts;
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+
+            const serverUrlInput = document.getElementById('serverUrl');
+            const checkConnectionBtn = document.getElementById('checkConnection');
+            const statusBadge = document.getElementById('statusBadge');
+            const scriptContentTextarea = document.getElementById('scriptContent');
+            const executeBtn = document.getElementById('executeBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultContent = document.getElementById('resultContent');
+            const exampleItems = document.querySelectorAll('.example-item');
+            const testXHRBtn = document.getElementById('testXHR');
+            const useProxyBtn = document.getElementById('useProxy');
+
+            // 使用代理连接
+            useProxyBtn.addEventListener('click', async function () {
+                const serverUrl = serverUrlInput.value.trim();
+                if (!serverUrl) {
+                    alert('请输入服务器地址');
+                    return;
+                }
+
+                useProxyBtn.disabled = true;
+                useProxyBtn.textContent = '正在连接...';
+
+                // 显示详细的连接信息
+                statusBadge.textContent = `正在通过代理连接 ${serverUrl}/status...`;
+                statusBadge.className = 'status-badge disconnected';
+
+                // 构建代理URL
+                const proxyUrl = `/proxy/${serverUrl.replace(/^https?:\/\//, '')}/status`;
+                console.log(`使用代理URL: ${proxyUrl}`);
+
+                try {
+                    const response = await fetch(proxyUrl);
+                    console.log('收到代理响应:', response.status);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('响应数据:', data);
+                        statusBadge.textContent = `已连接 - ${data.message}`;
+                        statusBadge.className = 'status-badge connected';
+
+                        // 保存使用代理的状态
+                        window.useProxyForRequests = true;
+                        window.targetServerUrl = serverUrl;
+
+                        resultContainer.style.display = 'block';
+                        resultContainer.className = 'result-container result-success';
+                        resultContent.textContent = `代理连接成功!\n\n响应数据: ${JSON.stringify(data, null, 2)}\n\n现在所有请求将通过代理发送。`;
+                    } else {
+                        statusBadge.textContent = `代理连接失败 - HTTP状态码: ${response.status}`;
+                        statusBadge.className = 'status-badge disconnected';
+
+                        resultContainer.style.display = 'block';
+                        resultContainer.className = 'result-container result-error';
+                        resultContent.textContent = `代理连接失败: HTTP ${response.status} ${response.statusText}`;
+                    }
+                } catch (error) {
+                    console.error('代理连接错误:', error);
+                    statusBadge.textContent = `代理连接错误: ${error.message}`;
+                    statusBadge.className = 'status-badge disconnected';
+
+                    resultContainer.style.display = 'block';
+                    resultContainer.className = 'result-container result-error';
+                    resultContent.textContent = `代理连接错误: ${error.message}\n\n请确保Web服务器正在运行。`;
+                } finally {
+                    useProxyBtn.disabled = false;
+                    useProxyBtn.textContent = '使用代理连接';
+                }
+            });
+
+            // 使用XHR测试连接
+            testXHRBtn.addEventListener('click', function () {
+                const serverUrl = serverUrlInput.value.trim();
+                if (!serverUrl) {
+                    alert('请输入服务器地址');
+                    return;
+                }
+
+                testXHRBtn.disabled = true;
+                testXHRBtn.textContent = '正在连接...';
+
+                // 显示详细的连接信息
+                statusBadge.textContent = `正在使用XHR连接 ${serverUrl}/status...`;
+                statusBadge.className = 'status-badge disconnected';
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `${serverUrl}/status`, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+
+                xhr.onload = function () {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            statusBadge.textContent = `已连接 - ${data.message}`;
+                            statusBadge.className = 'status-badge connected';
+
+                            resultContainer.style.display = 'block';
+                            resultContainer.className = 'result-container result-success';
+                            resultContent.textContent = `连接成功!\n\n响应数据: ${xhr.responseText}`;
+                        } catch (e) {
+                            statusBadge.textContent = `解析响应失败`;
+                            statusBadge.className = 'status-badge disconnected';
+
+                            resultContainer.style.display = 'block';
+                            resultContainer.className = 'result-container result-error';
+                            resultContent.textContent = `解析响应失败: ${e.message}\n\n原始响应: ${xhr.responseText}`;
+                        }
+                    } else {
+                        statusBadge.textContent = `连接失败 - HTTP状态码: ${xhr.status}`;
+                        statusBadge.className = 'status-badge disconnected';
+
+                        resultContainer.style.display = 'block';
+                        resultContainer.className = 'result-container result-error';
+                        resultContent.textContent = `HTTP错误: ${xhr.status} ${xhr.statusText}\n\n响应: ${xhr.responseText}`;
+                    }
+                    testXHRBtn.disabled = false;
+                    testXHRBtn.textContent = '测试XHR连接';
+                };
+
+                xhr.onerror = function () {
+                    statusBadge.textContent = `连接错误: 网络错误`;
+                    statusBadge.className = 'status-badge disconnected';
+
+                    resultContainer.style.display = 'block';
+                    resultContainer.className = 'result-container result-error';
+                    resultContent.textContent = `连接失败排查步骤:
+1. 确保RPA应用已启动并且HTTP服务器处于运行状态
+2. 确保设备和电脑在同一网络中
+3. 检查输入的IP地址和端口是否正确
+4. 尝试使用命令行工具如curl测试连接: curl ${serverUrl}/status
+5. 检查设备防火墙是否阻止了端口访问
+6. 如果使用的是模拟器，尝试使用10.0.2.2替代localhost
+
+错误详情: 网络错误，无法连接到服务器`;
+
+                    testXHRBtn.disabled = false;
+                    testXHRBtn.textContent = '测试XHR连接';
+                };
+
+                xhr.timeout = 10000; // 10秒超时
+                xhr.ontimeout = function () {
+                    statusBadge.textContent = `连接超时`;
+                    statusBadge.className = 'status-badge disconnected';
+
+                    resultContainer.style.display = 'block';
+                    resultContainer.className = 'result-container result-error';
+                    resultContent.textContent = `连接超时 - 请检查设备IP和端口是否正确`;
+
+                    testXHRBtn.disabled = false;
+                    testXHRBtn.textContent = '测试XHR连接';
+                };
+
+                xhr.send();
+            });
+
+            // 检查连接状态
+            checkConnectionBtn.addEventListener('click', async function () {
+                const serverUrl = serverUrlInput.value.trim();
+                if (!serverUrl) {
+                    alert('请输入服务器地址');
+                    return;
+                }
+
+                try {
+                    checkConnectionBtn.disabled = true;
+                    checkConnectionBtn.textContent = '正在连接...';
+
+                    // 显示详细的连接信息
+                    statusBadge.textContent = `正在连接 ${serverUrl}/status...`;
+                    statusBadge.className = 'status-badge disconnected';
+
+                    console.log(`尝试连接: ${serverUrl}/status`);
+
+                    const response = await fetch(`${serverUrl}/status`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        // 添加超时设置
+                        signal: AbortSignal.timeout(10000) // 10秒超时
+                    });
+
+                    console.log('收到响应:', response.status);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('响应数据:', data);
+                        statusBadge.textContent = `已连接 - ${data.message}`;
+                        statusBadge.className = 'status-badge connected';
+                    } else {
+                        statusBadge.textContent = `连接失败 - HTTP状态码: ${response.status}`;
+                        statusBadge.className = 'status-badge disconnected';
+                    }
+                } catch (error) {
+                    console.error('连接错误:', error);
+
+                    let errorMessage = error.message;
+
+                    // 提供更具体的错误信息
+                    if (error.name === 'AbortError') {
+                        errorMessage = '连接超时 - 请检查设备IP和端口是否正确';
+                    } else if (error.message.includes('Network')) {
+                        errorMessage = '网络错误 - 请检查设备和电脑是否在同一网络';
+                    } else if (error.message.includes('CORS')) {
+                        errorMessage = 'CORS错误 - 跨域请求被阻止';
+                    }
+
+                    statusBadge.textContent = `连接错误: ${errorMessage}`;
+                    statusBadge.className = 'status-badge disconnected';
+
+                    // 显示故障排除提示
+                    resultContainer.style.display = 'block';
+                    resultContainer.className = 'result-container result-error';
+                    resultContent.textContent = `连接失败排查步骤:
+1. 确保RPA应用已启动并且HTTP服务器处于运行状态
+2. 确保设备和电脑在同一网络中
+3. 检查输入的IP地址和端口是否正确
+4. 尝试ping设备IP地址检查网络连通性
+5. 检查设备防火墙是否阻止了端口访问
+6. 如果使用的是模拟器，尝试使用10.0.2.2替代localhost
+
+错误详情: ${error.toString()}`;
+                } finally {
+                    checkConnectionBtn.disabled = false;
+                    checkConnectionBtn.textContent = '检查连接';
+                }
+            });
+
+            // 执行脚本
+            executeBtn.addEventListener('click', async function () {
+                const serverUrl = serverUrlInput.value.trim();
+                let script = scriptContentTextarea.value.trim();
+
+                // 如果输入的是脚本名称，则使用对应的脚本
+                const scriptNames = Object.keys(scripts);
+                if (scriptNames.some(name => script.toLowerCase() === name.toLowerCase())) {
+                    script = scripts[script].script;
+                }
+
+                if (!serverUrl) {
+                    alert('请输入服务器地址');
+                    return;
+                }
+
+                if (!script) {
+                    alert('请输入脚本内容');
+                    return;
+                }
+
+                try {
+                    executeBtn.disabled = true;
+                    executeBtn.textContent = '执行中...';
+
+                    let url;
+                    // 检查是否使用代理
+                    if (window.useProxyForRequests) {
+                        url = `/proxy/${serverUrl.replace(/^https?:\/\//, '')}/execute-script`;
+                        console.log('使用代理执行脚本:', url);
+                    } else {
+                        url = `${serverUrl}/execute-script`;
+                    }
+
+                    // 在发送前检查脚本内容的编码
+                    console.log('准备发送的脚本内容:', script);
+                    console.log('脚本长度:', script.length);
+                    console.log('包含中文字符:', /[\u4e00-\u9fff]/.test(script));
+
+                    // 创建请求体
+                    const requestBody = JSON.stringify({ script });
+                    console.log('请求体:', requestBody);
+                    console.log('请求体长度:', requestBody.length);
+
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json; charset=utf-8'
+                        },
+                        body: requestBody
+                    });
+
+                    let data = await response.json();
+
+                    // 暂时移除Base64解码逻辑，直接处理响应
+                    console.log('接收到原始响应数据:', data);
+
+                    resultContainer.style.display = 'block';
+
+                    console.log('最终执行结果数据:', data);
+
+                    if (data.success) {
+                        resultContainer.className = 'result-container result-success';
+                        // 更好地格式化结果显示
+                        let resultText = '';
+                        if (typeof data.result === 'string') {
+                            resultText = data.result;
+                        } else if (data.result !== undefined) {
+                            resultText = JSON.stringify(data.result, null, 2);
+                        } else {
+                            resultText = '脚本执行成功（无返回值）';
+                        }
+                        resultContent.textContent = `执行成功:\n${resultText}`;
+                    } else {
+                        resultContainer.className = 'result-container result-error';
+                        // 提供更详细的错误信息
+                        let errorText = `执行失败:\n错误: ${data.error || '未知错误'}`;
+                        if (data.errorType) {
+                            errorText += `\n错误类型: ${data.errorType}`;
+                        }
+                        if (data.suggestion) {
+                            errorText += `\n建议: ${data.suggestion}`;
+                        }
+                        if (data.stack) {
+                            errorText += `\n\n堆栈信息:\n${data.stack}`;
+                        }
+                        resultContent.textContent = errorText;
+                    }
+                } catch (error) {
+                    resultContainer.style.display = 'block';
+                    resultContainer.className = 'result-container result-error';
+                    resultContent.textContent = `请求错误: ${error.message}`;
+
+                    // 提示用户尝试使用代理
+                    if (!window.useProxyForRequests) {
+                        resultContent.textContent += '\n\n提示: 请尝试点击"使用代理连接"按钮，通过代理发送请求。';
+                    }
+                } finally {
+                    executeBtn.disabled = false;
+                    executeBtn.textContent = '执行脚本';
+                }
+            });
+
+            // 清空脚本
+            clearBtn.addEventListener('click', function () {
+                scriptContentTextarea.value = '';
+                resultContainer.style.display = 'none';
+            });
+
+            // 修改示例脚本加载方式 - 通过data-script-key获取脚本
+            exampleItems.forEach(item => {
+                item.addEventListener('click', function () {
+                    const scriptKey = this.getAttribute('data-script-key');
+                    if (scriptKey && scripts[scriptKey]) {
+                        scriptContentTextarea.value = scripts[scriptKey].script;
+                        
+                        // 显示脚本描述信息
+                        console.log(`加载脚本: ${scripts[scriptKey].name}`);
+                        console.log(`描述: ${scripts[scriptKey].description}`);
+                        
+                        // 可选：在界面上显示脚本信息
+                        if (resultContainer) {
+                            resultContainer.style.display = 'block';
+                            resultContainer.className = 'result-container';
+                            resultContent.textContent = `已加载脚本: ${scripts[scriptKey].name}\n描述: ${scripts[scriptKey].description}`;
+                        }
+                    } else {
+                        console.warn('未找到脚本:', scriptKey);
+                        alert(`未找到脚本: ${scriptKey}`);
+                    }
+                });
+            });
+
+            // 添加快捷执行功能（可选）
+            // 为示例脚本添加双击直接执行功能
+            exampleItems.forEach(item => {
+                item.addEventListener('dblclick', function () {
+                    const scriptKey = this.getAttribute('data-script-key');
+                    if (scriptKey && scripts[scriptKey]) {
+                        scriptContentTextarea.value = scripts[scriptKey].script;
+                        // 双击时自动执行脚本
+                        setTimeout(() => {
+                            executeBtn.click();
+                        }, 100);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

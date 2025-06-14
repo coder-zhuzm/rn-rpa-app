@@ -1,2 +1,181 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# RPA App Git属性配置
+# 设置默认行为 - 自动检测文本文件并规范化行尾符
+* text=auto
+
+# ===============================================
+# 文本文件 - 强制使用LF行尾符
+# ===============================================
+
+# JavaScript/TypeScript文件
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.json5 text eol=lf
+
+# Web文件
+*.html text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.sass text eol=lf
+
+# 配置文件
+*.yml text eol=lf
+*.yaml text eol=lf
+*.xml text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.conf text eol=lf
+*.config text eol=lf
+
+# React Native配置文件
+*.metro.js text eol=lf
+babel.config.js text eol=lf
+metro.config.js text eol=lf
+jest.config.js text eol=lf
+.eslintrc.js text eol=lf
+.prettierrc.js text eol=lf
+
+# Android文件
+*.gradle text eol=lf
+*.properties text eol=lf
+*.pro text eol=lf
+*.xml text eol=lf
+*.java text eol=lf
+*.kt text eol=lf
+
+# iOS文件
+*.pbxproj text eol=lf
+*.plist text eol=lf
+*.m text eol=lf
+*.mm text eol=lf
+*.h text eol=lf
+*.swift text eol=lf
+*.storyboard text eol=lf
+*.xib text eol=lf
+
+# 文档文件
+*.md text eol=lf
+*.txt text eol=lf
+*.rtf text eol=lf
+
+# Git文件
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.gitmodules text eol=lf
+
+# Shell脚本
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+
+# ===============================================
+# 二进制文件 - 不进行文本处理
+# ===============================================
+
+# 图片文件
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.icns binary
+*.bmp binary
+*.tiff binary
+*.webp binary
+*.svg binary
+
+# 字体文件
+*.ttf binary
+*.otf binary
+*.eot binary
+*.woff binary
+*.woff2 binary
+
+# 音频/视频文件
+*.mp3 binary
+*.mp4 binary
+*.avi binary
+*.mov binary
+*.wav binary
+*.flac binary
+
+# 压缩文件
+*.zip binary
+*.tar binary
+*.gz binary
+*.rar binary
+*.7z binary
+
+# 应用文件
+*.apk binary
+*.ipa binary
+*.deb binary
+*.dmg binary
+*.exe binary
+*.msi binary
+
+# 数据库文件
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+
+# 密钥和证书文件
+*.p12 binary
+*.key binary
+*.keystore binary
+*.jks binary
+*.cer binary
+*.crt binary
+*.pem binary
+
+# ===============================================
+# 语言检测控制 (GitHub统计)
+# ===============================================
+
+# 排除依赖目录
+node_modules/* linguist-vendored
+ios/Pods/* linguist-vendored
+android/app/build/* linguist-generated
+vendor/* linguist-vendored
+
+# 排除文档目录
+doc/* linguist-documentation
+docs/* linguist-documentation
+*.md linguist-documentation
+
+# 排除示例和测试脚本
+example-scripts/* linguist-documentation
+test-scripts/* linguist-documentation
+
+# 排除自动生成的文件
+package-lock.json linguist-generated
+yarn.lock linguist-generated
+Gemfile.lock linguist-generated
+Podfile.lock linguist-generated
+
+# ===============================================
+# 特殊合并策略
+# ===============================================
+
+# iOS项目文件使用union合并策略（避免冲突）
+*.pbxproj merge=union
+
+# 锁定文件优先保留本地版本
+package-lock.json merge=ours
+yarn.lock merge=ours
+Gemfile.lock merge=ours
+Podfile.lock merge=ours
+
+# ===============================================
+# 差异显示优化
+# ===============================================
+
+# 图片文件显示基本信息而不是二进制内容
+*.png diff=exif
+*.jpg diff=exif
+*.jpeg diff=exif
