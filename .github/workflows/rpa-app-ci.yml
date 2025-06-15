@@ -9,6 +9,7 @@ on:
   # 推送到主分支时触发
   push:
     branches: [ main, develop ]
+    tags: [ 'v*' ]  # 推送标签时也触发
   # 创建Pull Request时触发
   pull_request:
     branches: [ main ]
@@ -447,9 +448,10 @@ jobs:
 
       # 创建发布
       - name: 🏷️ 创建发布
-        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: v0.1.${{ github.run_number }}
+          name: RPA App v0.1.${{ github.run_number }}
           files: |
             ./artifacts/**/*.apk
           body: |
@@ -466,8 +468,9 @@ jobs:
             - **提交**: ${{ github.sha }}
             - **分支**: ${{ github.ref_name }}
             - **构建时间**: ${{ github.event.head_commit.timestamp }}
+            - **运行编号**: ${{ github.run_number }}
           draft: false
-          prerelease: false
+          prerelease: true
 
   # 第五个任务：通知
   notify:
