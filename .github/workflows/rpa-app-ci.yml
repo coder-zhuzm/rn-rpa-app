@@ -296,27 +296,20 @@ jobs:
         run: |
           echo "⚙️ 配置Gradle环境..."
           
-          # 创建gradle.properties文件优化构建
+          # 创建最简洁兼容的gradle.properties文件
           cat > gradle.properties << EOF
-          # 启用并行构建
+          # 基础优化配置 - 只使用稳定的选项
           org.gradle.parallel=true
-          # 启用构建缓存
           org.gradle.caching=true
-          # 优化JVM参数
-          org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
-          # 启用守护进程
           org.gradle.daemon=true
-          # Android相关优化
+                     org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+          
+          # Android基础配置
           android.useAndroidX=true
           android.enableJetifier=true
-          android.enableR8.fullMode=true
-          # 禁用不必要的检查以加速构建
-          android.disableAutomaticComponentCreation=true
-          # 启用增量编译
+          
+          # Kotlin增量编译
           kotlin.incremental=true
-          kotlin.incremental.android=true
-          # 启用并行GC
-          org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=1g -XX:+UseParallelGC -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
           EOF
           
           # 检查gradle wrapper权限
@@ -349,33 +342,20 @@ jobs:
         run: |
           echo "🔨 开始构建 ${{ matrix.build-type }} 版本..."
           
-          # 设置环境变量
-          export GRADLE_OPTS="-Xmx6g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError"
-          export JAVA_OPTS="-Xmx6g"
+                     # 设置基础环境变量
+           export GRADLE_OPTS="-Xmx4g -XX:MaxMetaspaceSize=512m"
           
           # 显示内存使用情况
           echo "💾 构建前内存状态:"
           free -h
           
-                     # 根据构建类型选择不同的构建策略
+                     # 使用最简单稳定的构建命令
            if [ "${{ matrix.build-type }}" = "release" ]; then
              echo "🚀 构建Release版本..."
-             ./gradlew assembleRelease \
-               --no-daemon \
-               --stacktrace \
-               --parallel \
-               --build-cache \
-               -Dorg.gradle.workers.max=2 \
-               -Dkotlin.compiler.execution.strategy=in-process
+             ./gradlew assembleRelease --no-daemon --stacktrace
            else
              echo "🔧 构建Debug版本..."
-             ./gradlew assembleDebug \
-               --no-daemon \
-               --stacktrace \
-               --parallel \
-               --build-cache \
-               -Dorg.gradle.workers.max=2 \
-               -Dkotlin.compiler.execution.strategy=in-process
+             ./gradlew assembleDebug --no-daemon --stacktrace
            fi
           
           # 显示构建后内存状态
