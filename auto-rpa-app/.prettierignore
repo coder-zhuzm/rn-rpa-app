@@ -6,7 +6,6 @@ vendor/
 android/app/build/
 android/app/.cxx/
 android/build/
-ios/build/
 dist/
 build/
 
@@ -69,11 +68,7 @@ android/.gradle/
 *.keystore
 *.jks
 
-# iOS
-ios/build/
-ios/Pods/
-ios/*.xcworkspace
-ios/*.xcuserdata
+
 
 # Metro
 .metro-health-check*
@@ -84,7 +79,6 @@ ios/*.xcuserdata
 
 # 二进制文件
 *.apk
-*.ipa
 *.dex
 *.class
 

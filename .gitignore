@@ -179,25 +179,7 @@ captures/
 # Google Services (e.g. APIs or Firebase)
 google-services.json
 
-# iOS
-# ========================================
-# Xcode
-*.xcodeproj/*
-!*.xcodeproj/project.pbxproj
-!*.xcodeproj/xcshareddata/
-!*.xcodeproj/project.xcworkspace/
-!*.xcworkspace/contents.xcworkspacedata
-/*.gcno
-**/xcshareddata/WorkspaceSettings.xcsettings
 
-# iOS build artifacts
-*.ipa
-*.dSYM.zip
-*.dSYM
-
-# CocoaPods
-/ios/Pods/
-ios/Podfile.lock
 
 # Temporary files
 # ========================================

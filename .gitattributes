@@ -48,15 +48,7 @@ jest.config.js text eol=lf
 *.java text eol=lf
 *.kt text eol=lf
 
-# iOS文件
-*.pbxproj text eol=lf
-*.plist text eol=lf
-*.m text eol=lf
-*.mm text eol=lf
-*.h text eol=lf
-*.swift text eol=lf
-*.storyboard text eol=lf
-*.xib text eol=lf
+
 
 # 文档文件
 *.md text eol=lf
@@ -113,7 +105,6 @@ jest.config.js text eol=lf
 
 # 应用文件
 *.apk binary
-*.ipa binary
 *.deb binary
 *.dmg binary
 *.exe binary
@@ -139,7 +130,6 @@ jest.config.js text eol=lf
 
 # 排除依赖目录
 node_modules/* linguist-vendored
-ios/Pods/* linguist-vendored
 android/app/build/* linguist-generated
 vendor/* linguist-vendored
 
@@ -155,21 +145,14 @@ test-scripts/* linguist-documentation
 # 排除自动生成的文件
 package-lock.json linguist-generated
 yarn.lock linguist-generated
-Gemfile.lock linguist-generated
-Podfile.lock linguist-generated
 
 # ===============================================
 # 特殊合并策略
 # ===============================================
 
-# iOS项目文件使用union合并策略（避免冲突）
-*.pbxproj merge=union
-
 # 锁定文件优先保留本地版本
 package-lock.json merge=ours
 yarn.lock merge=ours
-Gemfile.lock merge=ours
-Podfile.lock merge=ours
 
 # ===============================================
 # 差异显示优化

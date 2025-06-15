@@ -7,7 +7,6 @@
 ```
 auto-rpa-app/
 ├── 📁 android/                    # Android 原生代码
-├── 📁 ios/                        # iOS 原生代码（预留）
 ├── 📁 src/                        # React Native 源代码
 ├── 📁 doc/                        # 项目文档
 ├── 📁 test-scripts/               # 测试脚本
@@ -26,7 +25,6 @@ auto-rpa-app/
 ├── 📄 metro.config.js             # Metro 打包配置
 ├── 📄 babel.config.js             # Babel 转译配置
 ├── 📄 react-native.config.js      # React Native 配置
-├── 📄 Gemfile                     # Ruby 依赖（iOS 构建）
 ├── 📄 README.md                   # 项目说明
 ├── 📄 QUICK_START.md              # 快速开始指南
 ├── 📄 CODE_STANDARDS.md           # 代码规范文档

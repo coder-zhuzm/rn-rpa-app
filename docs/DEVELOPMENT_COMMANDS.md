@@ -69,11 +69,7 @@ xcrun simctl list devices
 # 启动指定模拟器
 xcrun simctl boot "<模拟器ID>"
 
-# 在模拟器中安装应用
-npx react-native run-ios --simulator="iPhone 15"
 
-# 清理iOS构建缓存
-cd ios && xcodebuild clean
 ```
 
 ## 🔧 Web调试界面
@@ -127,8 +123,7 @@ npm install
 # 检查过期的包
 npm outdated
 
-# 安装iOS依赖（macOS）
-cd ios && pod install
+
 ```
 
 ### 代码质量
@@ -188,16 +183,7 @@ cd auto-rpa-app/android
 - **调试版本**: 包含调试信息，使用调试签名，文件较大，仅用于开发测试
 - **发布版本**: 经过优化和混淆，使用发布签名，文件较小，用于正式发布
 
-### iOS构建（macOS）
 
-```bash
-# 构建iOS项目
-cd auto-rpa-app/ios
-xcodebuild -workspace auto-rpa-app.xcworkspace -scheme auto-rpa-app build
-
-# 清理iOS构建
-xcodebuild clean
-```
 
 ## 🔍 调试和日志
 
