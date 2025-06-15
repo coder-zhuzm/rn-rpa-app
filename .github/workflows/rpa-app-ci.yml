@@ -209,6 +209,7 @@ jobs:
     name: 🤖 Android 构建
     runs-on: ubuntu-latest
     needs: [code-quality, test]
+    timeout-minutes: 45  # 增加整个任务的超时时间
     
     strategy:
       matrix:
@@ -274,49 +275,141 @@ jobs:
             npm install
           fi
 
-      # 缓存Gradle依赖
+      # 增强的Gradle缓存配置
       - name: 📦 缓存 Gradle
         uses: actions/cache@v3
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
+            ~/.gradle/daemon
             auto-rpa-app/android/.gradle
-          key: gradle-${{ runner.os }}-${{ hashFiles('auto-rpa-app/android/gradle/wrapper/gradle-wrapper.properties') }}
+            auto-rpa-app/android/app/build/intermediates
+            auto-rpa-app/android/app/build/tmp
+          key: gradle-${{ runner.os }}-${{ hashFiles('auto-rpa-app/android/gradle/wrapper/gradle-wrapper.properties', 'auto-rpa-app/android/build.gradle', 'auto-rpa-app/android/app/build.gradle') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
 
-      # 构建Android应用
-      - name: 🔨 构建 Android APK (${{ matrix.build-type }})
+      # 预配置Gradle环境
+      - name: ⚙️ 配置 Gradle 环境
         working-directory: auto-rpa-app/android
-        timeout-minutes: 30  # 设置超时时间
         run: |
-          echo "🔨 开始构建 ${{ matrix.build-type }} 版本..."
+          echo "⚙️ 配置Gradle环境..."
           
-          # 设置Gradle优化参数
-          export GRADLE_OPTS="-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError"
+          # 创建gradle.properties文件优化构建
+          cat > gradle.properties << EOF
+          # 启用并行构建
+          org.gradle.parallel=true
+          # 启用配置缓存
+          org.gradle.configuration-cache=true
+          # 启用构建缓存
+          org.gradle.caching=true
+          # 优化JVM参数
+          org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+          # 启用守护进程
+          org.gradle.daemon=true
+          # Android相关优化
+          android.useAndroidX=true
+          android.enableJetifier=true
+          android.enableR8.fullMode=true
+          # 禁用不必要的任务
+          android.enableBuildCache=true
+          android.experimental.enableSourceSetPathsMap=true
+          EOF
           
           # 检查gradle wrapper权限
           chmod +x ./gradlew
           
+          # 预热Gradle守护进程
+          echo "🔥 预热Gradle守护进程..."
+          ./gradlew --version
+
+      # 清理和准备构建环境
+      - name: 🧹 清理构建环境
+        working-directory: auto-rpa-app/android
+        run: |
+          echo "🧹 清理之前的构建产物..."
+          ./gradlew clean --no-daemon --quiet
+          
+          # 清理node_modules中可能的冲突文件
+          echo "🔍 检查react-native-http-bridge状态..."
+          if [ -d "../node_modules/react-native-http-bridge" ]; then
+            echo "✅ react-native-http-bridge 存在"
+            ls -la ../node_modules/react-native-http-bridge/android/
+          else
+            echo "❌ react-native-http-bridge 不存在"
+          fi
+
+      # 构建Android应用
+      - name: 🔨 构建 Android APK (${{ matrix.build-type }})
+        working-directory: auto-rpa-app/android
+        timeout-minutes: 35  # 设置构建步骤的超时时间
+        run: |
+          echo "🔨 开始构建 ${{ matrix.build-type }} 版本..."
+          
+          # 设置环境变量
+          export GRADLE_OPTS="-Xmx6g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError"
+          export JAVA_OPTS="-Xmx6g"
+          
+          # 显示内存使用情况
+          echo "💾 构建前内存状态:"
+          free -h
+          
+          # 根据构建类型选择不同的构建策略
           if [ "${{ matrix.build-type }}" = "release" ]; then
+            echo "🚀 构建Release版本..."
             ./gradlew assembleRelease \
               --no-daemon \
               --stacktrace \
-              --info \
               --parallel \
               --build-cache \
-              -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=512m" \
-              -Dorg.gradle.parallel=true \
-              -Dorg.gradle.configureondemand=true
+              --configuration-cache \
+              -Dorg.gradle.workers.max=2 \
+              -Dkotlin.incremental=false \
+              -Dkotlin.compiler.execution.strategy=in-process
           else
+            echo "🔧 构建Debug版本..."
             ./gradlew assembleDebug \
               --no-daemon \
               --stacktrace \
-              --info \
               --parallel \
               --build-cache \
-              -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=512m" \
-              -Dorg.gradle.parallel=true \
-              -Dorg.gradle.configureondemand=true
+              --configuration-cache \
+              -Dorg.gradle.workers.max=2 \
+              -Dkotlin.incremental=false \
+              -Dkotlin.compiler.execution.strategy=in-process
+          fi
+          
+          # 显示构建后内存状态
+          echo "💾 构建后内存状态:"
+          free -h
+
+      # 验证构建产物
+      - name: ✅ 验证构建产物
+        working-directory: auto-rpa-app/android
+        run: |
+          echo "📱 验证APK构建结果："
+          
+          if [ "${{ matrix.build-type }}" = "release" ]; then
+            APK_PATH="app/build/outputs/apk/release/app-release.apk"
+          else
+            APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
+          fi
+          
+          if [ -f "$APK_PATH" ]; then
+            echo "✅ APK构建成功: $APK_PATH"
+            ls -lh "$APK_PATH"
+            
+            # 显示APK基本信息
+            if command -v aapt >/dev/null 2>&1; then
+              echo "📋 APK信息:"
+              aapt dump badging "$APK_PATH" | head -5
+            fi
+          else
+            echo "❌ APK构建失败: $APK_PATH 不存在"
+            echo "📂 查看输出目录:"
+            find app/build/outputs -name "*.apk" -o -name "*.aab" | head -10
+            exit 1
           fi
 
       # 上传构建产物
@@ -329,18 +422,28 @@ jobs:
             auto-rpa-app/android/app/build/outputs/mapping/**/mapping.txt
           retention-days: 30
 
-      # 获取APK信息
-      - name: 📋 APK 信息
+      # 构建失败时的诊断信息
+      - name: 🔍 构建失败诊断
+        if: failure()
         working-directory: auto-rpa-app/android
         run: |
-          echo "📱 APK构建信息："
-          find app/build/outputs/apk -name "*.apk" -exec ls -lh {} \;
+          echo "❌ 构建失败，收集诊断信息..."
           
-          # 如果是release版本，显示签名信息
-          if [ "${{ matrix.build-type }}" = "release" ]; then
-            echo "🔐 APK签名信息："
-            find app/build/outputs/apk -name "*.apk" -exec aapt dump badging {} \; | head -5
-          fi
+          echo "📂 项目结构:"
+          find . -name "build.gradle" -o -name "*.properties" | head -10
+          
+          echo "📋 Gradle版本信息:"
+          ./gradlew --version || true
+          
+          echo "💾 系统资源状态:"
+          free -h
+          df -h
+          
+          echo "📝 最近的构建日志:"
+          find . -name "*.log" -newer gradle.properties 2>/dev/null | head -5 | xargs tail -50 || true
+          
+          echo "🔍 检查依赖状态:"
+          ls -la ../node_modules/react-native-http-bridge/android/ || true
 
   # 第四个任务：部署（仅在主分支）
   deploy:
@@ -398,44 +501,49 @@ jobs:
     steps:
       - name: 📊 构建结果总结
         run: |
-          echo "## 🤖 RPA App 构建报告" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📋 任务状态" >> $GITHUB_STEP_SUMMARY
-          echo "- 代码质量检查: ${{ needs.code-quality.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- 单元测试: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Android构建: ${{ needs.build-android.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🔗 相关链接" >> $GITHUB_STEP_SUMMARY
-          echo "- [查看构建日志](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
-          echo "- [下载APK](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "📊 构建流水线执行完成"
+          echo "代码质量检查: ${{ needs.code-quality.result }}"
+          echo "单元测试: ${{ needs.test.result }}"
+          echo "Android构建: ${{ needs.build-android.result }}"
+          
+          if [ "${{ needs.build-android.result }}" = "failure" ]; then
+            echo "❌ Android构建失败，请检查构建日志"
+          elif [ "${{ needs.build-android.result }}" = "success" ]; then
+            echo "✅ Android构建成功"
+          fi
 
-      # 如果构建失败，创建Issue
-      - name: 🐛 创建失败Issue
+      # 构建失败时创建Issue
+      - name: 🐛 创建构建失败Issue
         if: failure()
         uses: actions/github-script@v7
         with:
           script: |
-            github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `🚨 构建失败 - ${context.sha.substring(0, 7)}`,
-              body: `
-            ## 🚨 构建失败报告
+            const title = `🚨 构建失败 - ${context.workflow} #${context.runNumber}`;
+            const body = `
+            ## 构建失败报告
             
+            **工作流**: ${context.workflow}
+            **运行编号**: ${context.runNumber}
             **提交**: ${context.sha}
             **分支**: ${context.ref}
             **触发者**: ${context.actor}
-            **时间**: ${new Date().toISOString()}
             
-            ### 📋 失败任务
+            ### 失败的任务
             - 代码质量检查: ${{ needs.code-quality.result }}
             - 单元测试: ${{ needs.test.result }}
             - Android构建: ${{ needs.build-android.result }}
             
-            ### 🔗 查看详情
-            [构建日志](${context.payload.repository.html_url}/actions/runs/${context.runId})
+            ### 查看详情
+            [点击查看构建日志](${context.payload.repository.html_url}/actions/runs/${context.runId})
             
-            请检查构建日志并修复问题。
-              `,
-              labels: ['bug', 'ci/cd', 'auto-created']
-            }) 
+            ---
+            *此Issue由GitHub Actions自动创建*
+            `;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['bug', 'ci/cd', 'auto-generated']
+            }); 
