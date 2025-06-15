@@ -15,6 +15,12 @@ on:
         required: true
         type: string
 
+# 权限配置
+permissions:
+  contents: write  # 需要写权限来创建 Release
+  packages: write  # 如果需要发布包
+  actions: read    # 读取 Actions 权限
+
 # 环境变量
 env:
   NODE_VERSION: '18'
@@ -118,6 +124,8 @@ jobs:
 
       - name: 🏷️ 创建 GitHub Release
         uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.release_info.outputs.tag_name }}
           name: ${{ steps.release_info.outputs.release_name }}
