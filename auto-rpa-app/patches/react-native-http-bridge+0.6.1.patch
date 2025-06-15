@@ -1,0 +1,87 @@
+diff --git a/node_modules/react-native-http-bridge/android/build.gradle b/node_modules/react-native-http-bridge/android/build.gradle
+index 9417a5f..b34bddc 100644
+--- a/node_modules/react-native-http-bridge/android/build.gradle
++++ b/node_modules/react-native-http-bridge/android/build.gradle
+@@ -1,40 +1,33 @@
+-buildscript {
+-    repositories {
+-        jcenter()
+-    }
+-    dependencies {
+-        classpath 'com.android.tools.build:gradle:2.2.0'
+-    }
+-}
+-
+-allprojects {
+-    repositories {
+-        jcenter()
+-    }
+-}
+-
+ apply plugin: 'com.android.library'
+ 
+ android {
+-    compileSdkVersion 26
+-    buildToolsVersion "26.0.2"
++    compileSdkVersion rootProject.ext.compileSdkVersion
++    buildToolsVersion rootProject.ext.buildToolsVersion
+ 
+     defaultConfig {
+-        minSdkVersion 16
+-        targetSdkVersion 22
++        minSdkVersion rootProject.ext.minSdkVersion
++        targetSdkVersion rootProject.ext.targetSdkVersion
+         versionCode 2
+         versionName "1.1"
+-        ndk {
+-            abiFilters "armeabi-v7a", "x86"
+-        }
+     }
+     lintOptions {
+        warning 'InvalidPackage'
+     }
++    
++    compileOptions {
++        sourceCompatibility JavaVersion.VERSION_1_8
++        targetCompatibility JavaVersion.VERSION_1_8
++    }
++    
++    namespace "com.github.jonnybgod.RNHttpServer"
+ }
+ 
+ dependencies {
+-    compile 'com.facebook.react:react-native:+'
+-    compile 'com.google.android.gms:play-services-gcm:+'
+-    compile 'org.nanohttpd:nanohttpd:2.3.1'
++    implementation 'com.facebook.react:react-native:+'
++    implementation 'org.nanohttpd:nanohttpd:2.3.1'
++}
++
++repositories {
++    mavenCentral()
++    google()
+ }
+diff --git a/node_modules/react-native-http-bridge/android/src/main/AndroidManifest.xml b/node_modules/react-native-http-bridge/android/src/main/AndroidManifest.xml
+index d06447a..c0021bc 100644
+--- a/node_modules/react-native-http-bridge/android/src/main/AndroidManifest.xml
++++ b/node_modules/react-native-http-bridge/android/src/main/AndroidManifest.xml
+@@ -1,5 +1,4 @@
+-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+-          package="me.alwx.HttpServer">
++<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+ 
+           <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+ 
+diff --git a/node_modules/react-native-http-bridge/android/src/main/java/me/alwx/HttpServer/Server.java b/node_modules/react-native-http-bridge/android/src/main/java/me/alwx/HttpServer/Server.java
+index decf9f2..d6606fd 100644
+--- a/node_modules/react-native-http-bridge/android/src/main/java/me/alwx/HttpServer/Server.java
++++ b/node_modules/react-native-http-bridge/android/src/main/java/me/alwx/HttpServer/Server.java
+@@ -14,7 +14,7 @@ import java.util.Set;
+ import java.util.HashMap;
+ import java.util.Random;
+ 
+-import android.support.annotation.Nullable;
++import androidx.annotation.Nullable;
+ import android.util.Log;
+ 
+ public class Server extends NanoHTTPD {
