@@ -1,0 +1,389 @@
+# 🌐 GitHub Pages 自动部署
+# 自动生成并部署项目的GitHub Pages页面
+
+name: 🚀 部署 GitHub Pages
+
+# 触发条件
+on:
+  # 推送到主分支时触发
+  push:
+    branches: [ main ]
+  # 手动触发
+  workflow_dispatch:
+
+# 设置权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 并发控制 - 确保只有一个部署在运行
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # 构建页面
+  build:
+    name: 📄 构建页面
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 检出代码
+      - name: ⬇️ 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史用于生成统计
+
+      # 设置Node.js环境
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # 生成项目页面
+      - name: 📝 生成项目页面
+        run: |
+          echo "🏗️ 开始生成GitHub Pages..."
+          
+          # 创建页面目录
+          mkdir -p docs
+          
+          # 获取项目信息
+          PROJECT_NAME=$(basename $(pwd))
+          COMMIT_COUNT=$(git rev-list --count HEAD)
+          LAST_COMMIT=$(git log -1 --format="%h - %s (%cr)")
+          CONTRIBUTORS=$(git log --format='%an' | sort -u | wc -l)
+          
+          # 检查是否有RPA应用
+          if [ -d "auto-rpa-app" ]; then
+            cd auto-rpa-app
+            if [ -f "package.json" ]; then
+              APP_NAME=$(cat package.json | grep '"name"' | cut -d'"' -f4)
+              APP_VERSION=$(cat package.json | grep '"version"' | cut -d'"' -f4)
+              APP_DESC=$(cat package.json | grep '"description"' | cut -d'"' -f4)
+            fi
+            cd ..
+          fi
+          
+          # 生成HTML页面
+          cat > docs/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="zh-CN">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${PROJECT_NAME} - RPA 自动化应用</title>
+            <style>
+              * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+              }
+              
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+              }
+              
+              .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+              }
+              
+              .header {
+                text-align: center;
+                color: white;
+                margin-bottom: 40px;
+                padding: 40px 0;
+              }
+              
+              .header h1 {
+                font-size: 3rem;
+                margin-bottom: 10px;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+              }
+              
+              .header p {
+                font-size: 1.2rem;
+                opacity: 0.9;
+              }
+              
+              .card {
+                background: white;
+                border-radius: 12px;
+                padding: 30px;
+                margin-bottom: 30px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                transition: transform 0.3s ease;
+              }
+              
+              .card:hover {
+                transform: translateY(-5px);
+              }
+              
+              .card h2 {
+                color: #667eea;
+                margin-bottom: 20px;
+                font-size: 1.8rem;
+              }
+              
+              .stats {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                margin-bottom: 30px;
+              }
+              
+              .stat-item {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 20px;
+                border-radius: 8px;
+                text-align: center;
+              }
+              
+              .stat-number {
+                font-size: 2rem;
+                font-weight: bold;
+                display: block;
+              }
+              
+              .stat-label {
+                font-size: 0.9rem;
+                opacity: 0.9;
+              }
+              
+              .features {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 20px;
+              }
+              
+              .feature {
+                padding: 20px;
+                border-left: 4px solid #667eea;
+                background: #f8f9ff;
+                border-radius: 0 8px 8px 0;
+              }
+              
+              .feature h3 {
+                color: #667eea;
+                margin-bottom: 10px;
+              }
+              
+              .download-section {
+                text-align: center;
+                padding: 40px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border-radius: 12px;
+                margin-top: 30px;
+              }
+              
+              .download-btn {
+                display: inline-block;
+                background: white;
+                color: #667eea;
+                padding: 15px 30px;
+                border-radius: 25px;
+                text-decoration: none;
+                font-weight: bold;
+                margin: 10px;
+                transition: transform 0.3s ease;
+              }
+              
+              .download-btn:hover {
+                transform: scale(1.05);
+              }
+              
+              .footer {
+                text-align: center;
+                color: white;
+                margin-top: 40px;
+                opacity: 0.8;
+              }
+              
+              @media (max-width: 768px) {
+                .header h1 {
+                  font-size: 2rem;
+                }
+                
+                .container {
+                  padding: 10px;
+                }
+                
+                .card {
+                  padding: 20px;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <!-- 头部 -->
+              <div class="header">
+                <h1>🤖 ${APP_NAME:-RPA 自动化应用}</h1>
+                <p>${APP_DESC:-React Native RPA 移动端自动化应用}</p>
+                <p>版本 ${APP_VERSION:-1.0.0}</p>
+              </div>
+              
+              <!-- 统计信息 -->
+              <div class="stats">
+                <div class="stat-item">
+                  <span class="stat-number">${COMMIT_COUNT}</span>
+                  <span class="stat-label">提交次数</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-number">${CONTRIBUTORS}</span>
+                  <span class="stat-label">贡献者</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-number">React Native</span>
+                  <span class="stat-label">技术栈</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-number">Android</span>
+                  <span class="stat-label">支持平台</span>
+                </div>
+              </div>
+              
+              <!-- 功能特性 -->
+              <div class="card">
+                <h2>✨ 功能特性</h2>
+                <div class="features">
+                  <div class="feature">
+                    <h3>🎯 UI自动化操作</h3>
+                    <p>支持点击、滑动、输入等Android UI交互操作</p>
+                  </div>
+                  <div class="feature">
+                    <h3>📝 JavaScript脚本执行</h3>
+                    <p>动态执行自动化脚本，支持复杂逻辑处理</p>
+                  </div>
+                  <div class="feature">
+                    <h3>🌐 HTTP API服务</h3>
+                    <p>内置HTTP服务器，支持远程控制和脚本推送</p>
+                  </div>
+                  <div class="feature">
+                    <h3>🔗 Web远程调试</h3>
+                    <p>现代化Web界面，实时监控和调试功能</p>
+                  </div>
+                  <div class="feature">
+                    <h3>📱 系统集成</h3>
+                    <p>快捷访问系统设置、应用管理等功能</p>
+                  </div>
+                  <div class="feature">
+                    <h3>📄 完整日志系统</h3>
+                    <p>详细的操作日志和错误追踪机制</p>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 技术栈 -->
+              <div class="card">
+                <h2>🛠️ 技术栈</h2>
+                <div class="features">
+                  <div class="feature">
+                    <h3>📱 前端技术</h3>
+                    <p>React Native 0.80.0, TypeScript 5.0.4, React 19.1.0</p>
+                  </div>
+                  <div class="feature">
+                    <h3>🔧 后端服务</h3>
+                    <p>Node.js, Express.js, HTTP Bridge</p>
+                  </div>
+                  <div class="feature">
+                    <h3>📱 Android原生</h3>
+                    <p>Kotlin, UI Automator 2.2.0, Gradle 8.14.1</p>
+                  </div>
+                  <div class="feature">
+                    <h3>🛠️ 开发工具</h3>
+                    <p>ESLint, Prettier, Jest, Flipper</p>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 下载区域 -->
+              <div class="download-section">
+                <h2>📱 立即下载</h2>
+                <p>获取最新版本的RPA自动化应用</p>
+                <a href="https://github.com/${GITHUB_REPOSITORY}/releases/latest" class="download-btn">
+                  📥 下载最新版本
+                </a>
+                <a href="https://github.com/${GITHUB_REPOSITORY}" class="download-btn">
+                  📚 查看源码
+                </a>
+              </div>
+              
+              <!-- 项目信息 -->
+              <div class="card">
+                <h2>📊 项目信息</h2>
+                <p><strong>最新提交:</strong> ${LAST_COMMIT}</p>
+                <p><strong>构建时间:</strong> $(date)</p>
+                <p><strong>仓库地址:</strong> <a href="https://github.com/${GITHUB_REPOSITORY}">https://github.com/${GITHUB_REPOSITORY}</a></p>
+              </div>
+              
+              <!-- 页脚 -->
+              <div class="footer">
+                <p>© 2024 RPA 自动化应用 | 使用 GitHub Actions 自动构建</p>
+                <p>最后更新: $(date)</p>
+              </div>
+            </div>
+          </body>
+          </html>
+          EOF
+          
+          # 替换变量
+          sed -i "s/\${PROJECT_NAME}/$PROJECT_NAME/g" docs/index.html
+          sed -i "s/\${APP_NAME:-RPA 自动化应用}/${APP_NAME:-RPA 自动化应用}/g" docs/index.html
+          sed -i "s/\${APP_VERSION:-1.0.0}/${APP_VERSION:-1.0.0}/g" docs/index.html
+          sed -i "s/\${APP_DESC:-React Native RPA 移动端自动化应用}/${APP_DESC:-React Native RPA 移动端自动化应用}/g" docs/index.html
+          sed -i "s/\${COMMIT_COUNT}/$COMMIT_COUNT/g" docs/index.html
+          sed -i "s/\${CONTRIBUTORS}/$CONTRIBUTORS/g" docs/index.html
+          sed -i "s/\${LAST_COMMIT}/$LAST_COMMIT/g" docs/index.html
+          sed -i "s/\${GITHUB_REPOSITORY}/${{ github.repository }}/g" docs/index.html
+          sed -i "s/\$(date)/$(date)/g" docs/index.html
+          
+          echo "✅ GitHub Pages 生成完成!"
+          echo "📄 页面文件: docs/index.html"
+          ls -la docs/
+
+      # 上传页面文件
+      - name: 📤 上传页面文件
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs
+
+  # 部署到GitHub Pages
+  deploy:
+    name: 🚀 部署到 GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: 🌐 部署到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: 📊 部署完成
+        run: |
+          echo "🎉 GitHub Pages 部署成功!"
+          echo "🔗 页面地址: ${{ steps.deployment.outputs.page_url }}"
+          echo ""
+          echo "## 🌐 GitHub Pages 部署完成" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **部署状态**: 成功" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **页面地址**: [${{ steps.deployment.outputs.page_url }}](${{ steps.deployment.outputs.page_url }})" >> $GITHUB_STEP_SUMMARY
+          echo "📅 **部署时间**: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 页面内容" >> $GITHUB_STEP_SUMMARY
+          echo "- 🤖 项目介绍和功能特性" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 项目统计信息" >> $GITHUB_STEP_SUMMARY
+          echo "- 🛠️ 技术栈展示" >> $GITHUB_STEP_SUMMARY
+          echo "- 📱 下载链接" >> $GITHUB_STEP_SUMMARY 
