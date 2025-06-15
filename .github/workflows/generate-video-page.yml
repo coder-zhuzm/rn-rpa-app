@@ -14,22 +14,24 @@ jobs:
       - name: 📄 Generate demo.html
         run: |
           mkdir -p docs
-          echo "<!DOCTYPE html>
-<html lang='zh'>
-<head>
-  <meta charset='UTF-8'>
-  <title>RPA 演示视频</title>
-  <style>
-    body { background:#111; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; color:#fff; font-family:sans-serif; margin:0 }
-    video { max-width:90%; border-radius:12px; border:2px solid #666 }
-    h1 { margin-bottom:20px; }
-  </style>
-</head>
-<body>
-  <h1>🎬 RPA 视频演示</h1>
-  <video src='${{ github.event.release.assets[0].browser_download_url }}' controls autoplay muted loop></video>
-</body>
-</html>" > docs/demo.html
+          cat > docs/demo.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang='zh'>
+          <head>
+            <meta charset='UTF-8'>
+            <title>RPA 演示视频</title>
+            <style>
+              body { background:#111; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; color:#fff; font-family:sans-serif; margin:0 }
+              video { max-width:90%; border-radius:12px; border:2px solid #666 }
+              h1 { margin-bottom:20px; }
+            </style>
+          </head>
+          <body>
+            <h1>🎬 RPA 视频演示</h1>
+            <video src='${{ github.event.release.assets[0].browser_download_url }}' controls autoplay muted loop></video>
+          </body>
+          </html>
+          EOF
 
       - name: 🚀 Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

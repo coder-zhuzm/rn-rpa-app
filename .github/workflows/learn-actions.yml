@@ -1,0 +1,267 @@
+# 📚 GitHub Actions 学习示例
+# 这是一个简化的Action，专门用于学习GitHub Actions的基础概念
+
+name: 📚 学习 GitHub Actions
+
+# 🎯 触发条件 (Triggers)
+on:
+  # 当推送代码到任何分支时触发
+  push:
+  # 当创建Pull Request时触发  
+  pull_request:
+  # 定时触发 - 每天早上8点 (UTC时间)
+  schedule:
+    - cron: '0 8 * * *'
+  # 手动触发 - 可以在GitHub界面手动运行
+  workflow_dispatch:
+    inputs:
+      greeting:
+        description: '输入一个问候语'
+        required: true
+        default: 'Hello World!'
+
+# 🌍 环境变量 (Environment Variables)
+env:
+  GLOBAL_VAR: "这是全局环境变量"
+  PROJECT_NAME: "RPA App"
+
+# 🏗️ 任务 (Jobs)
+jobs:
+  # 第一个任务：基础操作
+  basic-operations:
+    name: 🔰 基础操作学习
+    runs-on: ubuntu-latest  # 运行环境
+    
+    # 📝 任务级别的环境变量
+    env:
+      JOB_VAR: "这是任务级别的环境变量"
+    
+    steps:
+      # Step 1: 输出基本信息
+      - name: 📋 显示基本信息
+        run: |
+          echo "🎉 欢迎学习 GitHub Actions!"
+          echo "📅 当前时间: $(date)"
+          echo "🖥️  运行环境: ${{ runner.os }}"
+          echo "🏷️  事件类型: ${{ github.event_name }}"
+          echo "👤 触发者: ${{ github.actor }}"
+          echo "📂 仓库: ${{ github.repository }}"
+          echo "🌿 分支: ${{ github.ref_name }}"
+          echo "🔗 提交: ${{ github.sha }}"
+
+      # Step 2: 环境变量演示
+      - name: 🌍 环境变量演示
+        env:
+          STEP_VAR: "这是步骤级别的环境变量"
+        run: |
+          echo "🌍 环境变量演示:"
+          echo "- 全局变量: $GLOBAL_VAR"
+          echo "- 任务变量: $JOB_VAR" 
+          echo "- 步骤变量: $STEP_VAR"
+          echo "- 项目名称: $PROJECT_NAME"
+
+      # Step 3: 条件执行
+      - name: 🎯 条件执行演示
+        if: github.event_name == 'push'
+        run: |
+          echo "✅ 这个步骤只在push事件时执行"
+          echo "📝 提交信息: ${{ github.event.head_commit.message }}"
+
+      # Step 4: 手动输入演示
+      - name: 💬 手动输入演示
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "👋 手动触发的问候语: ${{ inputs.greeting }}"
+
+      # Step 5: 创建文件
+      - name: 📄 创建测试文件
+        run: |
+          echo "📝 创建测试文件..."
+          mkdir -p test-output
+          echo "Hello from GitHub Actions!" > test-output/hello.txt
+          echo "构建时间: $(date)" > test-output/build-info.txt
+          echo "提交哈希: ${{ github.sha }}" >> test-output/build-info.txt
+          ls -la test-output/
+
+      # Step 6: 上传文件 (Artifacts)
+      - name: 📤 上传测试文件
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-files-${{ github.run_number }}
+          path: test-output/
+          retention-days: 5
+
+  # 第二个任务：代码操作
+  code-operations:
+    name: 💻 代码操作学习
+    runs-on: ubuntu-latest
+    needs: basic-operations  # 依赖第一个任务完成
+    
+    steps:
+      # Step 1: 检出代码
+      - name: ⬇️ 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1  # 只获取最新提交
+
+      # Step 2: 显示项目结构
+      - name: 📁 显示项目结构
+        run: |
+          echo "📂 项目根目录结构:"
+          ls -la
+          echo ""
+          echo "📱 RPA应用目录结构:"
+          if [ -d "auto-rpa-app" ]; then
+            ls -la auto-rpa-app/
+          else
+            echo "❌ auto-rpa-app 目录不存在"
+          fi
+
+      # Step 3: 检查文件
+      - name: 🔍 检查重要文件
+        run: |
+          echo "🔍 检查重要文件是否存在:"
+          files=(
+            "README.md"
+            "auto-rpa-app/package.json"
+            "auto-rpa-app/android/build.gradle"
+            ".github/workflows"
+          )
+          
+          for file in "${files[@]}"; do
+            if [ -e "$file" ]; then
+              echo "✅ $file - 存在"
+            else
+              echo "❌ $file - 不存在"
+            fi
+          done
+
+      # Step 4: 读取package.json信息
+      - name: 📦 读取项目信息
+        if: hashFiles('auto-rpa-app/package.json') != ''
+        run: |
+          echo "📦 项目信息:"
+          cd auto-rpa-app
+          if command -v jq &> /dev/null; then
+            echo "- 项目名称: $(cat package.json | jq -r '.name')"
+            echo "- 版本: $(cat package.json | jq -r '.version')"
+            echo "- 描述: $(cat package.json | jq -r '.description')"
+          else
+            echo "📄 package.json 内容:"
+            head -10 package.json
+          fi
+
+  # 第三个任务：多平台构建
+  multi-platform:
+    name: 🌐 多平台演示
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [18, 20]
+        exclude:
+          # 排除Windows + Node 20的组合
+          - os: windows-latest
+            node-version: 20
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: 🖥️ 平台信息
+        run: |
+          echo "🖥️  操作系统: ${{ matrix.os }}"
+          echo "🟢 Node.js版本: ${{ matrix.node-version }}"
+          echo "🏃 运行器: ${{ runner.os }}"
+
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: ✅ 验证安装
+        run: |
+          echo "Node.js版本: $(node --version)"
+          echo "npm版本: $(npm --version)"
+
+  # 第四个任务：错误处理和重试
+  error-handling:
+    name: 🛠️ 错误处理学习
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 演示失败但继续执行
+      - name: ⚠️ 可能失败的步骤
+        continue-on-error: true
+        run: |
+          echo "🎲 随机成功或失败..."
+          if [ $((RANDOM % 2)) -eq 0 ]; then
+            echo "✅ 这次成功了!"
+            exit 0
+          else
+            echo "❌ 这次失败了!"
+            exit 1
+          fi
+
+      # 总是执行的步骤
+      - name: 🔄 总是执行的清理步骤
+        if: always()
+        run: |
+          echo "🧹 执行清理工作..."
+          echo "📊 这个步骤无论前面成功失败都会执行"
+
+      # 只在失败时执行
+      - name: 🚨 失败时的处理
+        if: failure()
+        run: |
+          echo "🚨 检测到前面的步骤失败了"
+          echo "📧 这里可以发送通知或执行恢复操作"
+
+  # 第五个任务：输出和共享数据
+  data-sharing:
+    name: 📊 数据共享学习
+    runs-on: ubuntu-latest
+    outputs:
+      # 定义输出变量
+      build-time: ${{ steps.build-info.outputs.time }}
+      random-number: ${{ steps.generate.outputs.number }}
+    
+    steps:
+      - name: 🎲 生成随机数据
+        id: generate
+        run: |
+          number=$((RANDOM % 1000))
+          echo "🎲 生成的随机数: $number"
+          echo "number=$number" >> $GITHUB_OUTPUT
+
+      - name: ⏰ 记录构建信息
+        id: build-info
+        run: |
+          current_time=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          echo "⏰ 构建时间: $current_time"
+          echo "time=$current_time" >> $GITHUB_OUTPUT
+
+      - name: 📝 创建摘要
+        run: |
+          echo "## 📊 构建摘要" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎲 随机数: ${{ steps.generate.outputs.number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- ⏰ 构建时间: ${{ steps.build-info.outputs.time }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 🏷️ 运行ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+
+  # 第六个任务：使用前面任务的输出
+  use-outputs:
+    name: 📥 使用输出数据
+    runs-on: ubuntu-latest
+    needs: data-sharing
+    
+    steps:
+      - name: 📊 显示共享数据
+        run: |
+          echo "📥 从前面任务获取的数据:"
+          echo "- 构建时间: ${{ needs.data-sharing.outputs.build-time }}"
+          echo "- 随机数: ${{ needs.data-sharing.outputs.random-number }}"
+
+      - name: 🎯 基于数据的条件操作
+        if: needs.data-sharing.outputs.random-number > 500
+        run: |
+          echo "🎉 随机数大于500，执行特殊操作!"
+          echo "🎲 数值: ${{ needs.data-sharing.outputs.random-number }}" 

@@ -1,0 +1,332 @@
+# 🤖 RPA App CI/CD Pipeline
+# 这是一个完整的GitHub Actions学习示例
+# 包含代码检查、构建、测试、发布等完整流程
+
+name: 🚀 RPA App CI/CD
+
+# 触发条件 - 什么时候运行这个Action
+on:
+  # 推送到主分支时触发
+  push:
+    branches: [ main, develop ]
+  # 创建Pull Request时触发
+  pull_request:
+    branches: [ main ]
+  # 手动触发（在GitHub界面可以手动运行）
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: '构建类型'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+        - debug
+        - release
+      skip_tests:
+        description: '跳过测试'
+        required: false
+        default: false
+        type: boolean
+
+# 环境变量 - 整个workflow都可以使用
+env:
+  NODE_VERSION: '18'
+  JAVA_VERSION: '11'
+  ANDROID_API_LEVEL: '33'
+
+# 任务定义
+jobs:
+  # 第一个任务：代码质量检查
+  code-quality:
+    name: 📋 代码质量检查
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: 检出代码
+      - name: ⬇️ 检出代码
+        uses: actions/checkout@v4
+        with:
+          # 获取完整的git历史，用于代码分析
+          fetch-depth: 0
+
+      # Step 2: 设置Node.js环境
+      - name: 🟢 设置 Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          # 缓存npm依赖，加速构建
+          cache: 'npm'
+          cache-dependency-path: auto-rpa-app/package-lock.json
+
+      # Step 3: 安装依赖
+      - name: 📦 安装依赖
+        working-directory: auto-rpa-app
+        run: |
+          echo "🔍 检查package.json..."
+          cat package.json | jq '.name, .version'
+          echo "📥 安装npm依赖..."
+          npm ci --prefer-offline --no-audit
+
+      # Step 4: 代码格式检查
+      - name: 🎨 代码格式检查
+        working-directory: auto-rpa-app
+        run: |
+          echo "🔍 检查代码格式..."
+          npm run prettier:check || {
+            echo "❌ 代码格式不符合规范"
+            echo "💡 运行 'npm run prettier:fix' 修复格式问题"
+            exit 1
+          }
+
+      # Step 5: ESLint检查
+      - name: 🔍 ESLint 代码检查
+        working-directory: auto-rpa-app
+        run: |
+          echo "🔍 运行ESLint检查..."
+          npm run lint || {
+            echo "❌ ESLint检查失败"
+            echo "💡 运行 'npm run lint:fix' 尝试自动修复"
+            exit 1
+          }
+
+      # Step 6: TypeScript类型检查
+      - name: 🔷 TypeScript 类型检查
+        working-directory: auto-rpa-app
+        run: |
+          echo "🔍 TypeScript类型检查..."
+          npx tsc --noEmit
+
+      # Step 7: 上传代码检查报告
+      - name: 📊 上传代码检查报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-quality-report
+          path: |
+            auto-rpa-app/eslint-report.json
+            auto-rpa-app/prettier-report.json
+          retention-days: 7
+
+  # 第二个任务：单元测试
+  test:
+    name: 🧪 单元测试
+    runs-on: ubuntu-latest
+    needs: code-quality  # 依赖代码质量检查通过
+    if: ${{ !inputs.skip_tests }}  # 如果手动触发时选择跳过测试，则不运行
+
+    steps:
+      - name: ⬇️ 检出代码
+        uses: actions/checkout@v4
+
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: auto-rpa-app/package-lock.json
+
+      - name: 📦 安装依赖
+        working-directory: auto-rpa-app
+        run: npm ci
+
+      # 运行Jest测试
+      - name: 🧪 运行单元测试
+        working-directory: auto-rpa-app
+        run: |
+          echo "🧪 运行Jest单元测试..."
+          npm test -- --coverage --watchAll=false --passWithNoTests
+
+      # 上传测试覆盖率报告
+      - name: 📊 上传测试覆盖率
+        uses: codecov/codecov-action@v3
+        with:
+          directory: auto-rpa-app/coverage
+          flags: unittests
+          name: rpa-app-coverage
+
+  # 第三个任务：Android构建
+  build-android:
+    name: 🤖 Android 构建
+    runs-on: ubuntu-latest
+    needs: [code-quality, test]
+    
+    strategy:
+      matrix:
+        # 构建矩阵 - 可以同时构建多个版本
+        build-type: [debug, release]
+        exclude:
+          # 如果是PR，只构建debug版本
+          - build-type: ${{ github.event_name == 'pull_request' && 'release' }}
+
+    steps:
+      - name: ⬇️ 检出代码
+        uses: actions/checkout@v4
+
+      # 设置Java环境（Android构建需要）
+      - name: ☕ 设置 JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      # 设置Android SDK
+      - name: 🤖 设置 Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          build-tools: '33.0.0'
+          ndk: '25.1.8937393'
+
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: auto-rpa-app/package-lock.json
+
+      - name: 📦 安装依赖
+        working-directory: auto-rpa-app
+        run: npm ci
+
+      # 缓存Gradle依赖
+      - name: 📦 缓存 Gradle
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            auto-rpa-app/android/.gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles('auto-rpa-app/android/gradle/wrapper/gradle-wrapper.properties') }}
+
+      # 构建Android应用
+      - name: 🔨 构建 Android APK (${{ matrix.build-type }})
+        working-directory: auto-rpa-app/android
+        run: |
+          echo "🔨 开始构建 ${{ matrix.build-type }} 版本..."
+          if [ "${{ matrix.build-type }}" = "release" ]; then
+            ./gradlew assembleRelease --no-daemon --stacktrace
+          else
+            ./gradlew assembleDebug --no-daemon --stacktrace
+          fi
+
+      # 上传构建产物
+      - name: 📤 上传 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpa-app-${{ matrix.build-type }}-${{ github.sha }}
+          path: |
+            auto-rpa-app/android/app/build/outputs/apk/**/*.apk
+            auto-rpa-app/android/app/build/outputs/mapping/**/mapping.txt
+          retention-days: 30
+
+      # 获取APK信息
+      - name: 📋 APK 信息
+        working-directory: auto-rpa-app/android
+        run: |
+          echo "📱 APK构建信息："
+          find app/build/outputs/apk -name "*.apk" -exec ls -lh {} \;
+          
+          # 如果是release版本，显示签名信息
+          if [ "${{ matrix.build-type }}" = "release" ]; then
+            echo "🔐 APK签名信息："
+            find app/build/outputs/apk -name "*.apk" -exec aapt dump badging {} \; | head -5
+          fi
+
+  # 第四个任务：部署（仅在主分支）
+  deploy:
+    name: 🚀 部署
+    runs-on: ubuntu-latest
+    needs: [build-android]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    environment:
+      name: production
+      url: https://github.com/${{ github.repository }}/releases
+
+    steps:
+      - name: ⬇️ 检出代码
+        uses: actions/checkout@v4
+
+      # 下载构建产物
+      - name: 📥 下载构建产物
+        uses: actions/download-artifact@v4
+        with:
+          pattern: rpa-app-*
+          path: ./artifacts
+
+      # 创建发布
+      - name: 🏷️ 创建发布
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./artifacts/**/*.apk
+          body: |
+            ## 🤖 RPA App 发布
+
+            ### 📱 APK下载
+            - **Debug版本**: 用于开发和测试
+            - **Release版本**: 用于生产环境
+
+            ### 🔄 更新内容
+            ${{ github.event.head_commit.message }}
+
+            ### 📊 构建信息
+            - **提交**: ${{ github.sha }}
+            - **分支**: ${{ github.ref_name }}
+            - **构建时间**: ${{ github.event.head_commit.timestamp }}
+          draft: false
+          prerelease: false
+
+  # 第五个任务：通知
+  notify:
+    name: 📢 构建通知
+    runs-on: ubuntu-latest
+    needs: [code-quality, test, build-android]
+    if: always()  # 无论成功失败都运行
+
+    steps:
+      - name: 📊 构建结果总结
+        run: |
+          echo "## 🤖 RPA App 构建报告" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 任务状态" >> $GITHUB_STEP_SUMMARY
+          echo "- 代码质量检查: ${{ needs.code-quality.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 单元测试: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Android构建: ${{ needs.build-android.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 相关链接" >> $GITHUB_STEP_SUMMARY
+          echo "- [查看构建日志](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "- [下载APK](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+
+      # 如果构建失败，创建Issue
+      - name: 🐛 创建失败Issue
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 构建失败 - ${context.sha.substring(0, 7)}`,
+              body: `
+            ## 🚨 构建失败报告
+            
+            **提交**: ${context.sha}
+            **分支**: ${context.ref}
+            **触发者**: ${context.actor}
+            **时间**: ${new Date().toISOString()}
+            
+            ### 📋 失败任务
+            - 代码质量检查: ${{ needs.code-quality.result }}
+            - 单元测试: ${{ needs.test.result }}
+            - Android构建: ${{ needs.build-android.result }}
+            
+            ### 🔗 查看详情
+            [构建日志](${context.payload.repository.html_url}/actions/runs/${context.runId})
+            
+            请检查构建日志并修复问题。
+              `,
+              labels: ['bug', 'ci/cd', 'auto-created']
+            }) 
