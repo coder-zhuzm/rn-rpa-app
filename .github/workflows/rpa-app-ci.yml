@@ -55,9 +55,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          # 缓存npm依赖，加速构建
-          cache: 'npm'
-          cache-dependency-path: auto-rpa-app/package-lock.json
+
+      # Step 2.5: 手动缓存npm依赖
+      - name: 📦 缓存 npm 依赖
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('auto-rpa-app/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       # Step 3: 安装依赖
       - name: 📦 安装依赖
@@ -123,8 +129,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: auto-rpa-app/package-lock.json
+
+      - name: 📦 缓存 npm 依赖
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('auto-rpa-app/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: 📦 安装依赖
         working-directory: auto-rpa-app
@@ -182,8 +194,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: auto-rpa-app/package-lock.json
+
+      - name: 📦 缓存 npm 依赖
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('auto-rpa-app/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: 📦 安装依赖
         working-directory: auto-rpa-app

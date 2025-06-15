@@ -177,6 +177,15 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: 📦 缓存 npm 依赖
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-
+            ${{ runner.os }}-node-
+
       - name: ✅ 验证安装
         run: |
           echo "Node.js版本: $(node --version)"
