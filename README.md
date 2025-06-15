@@ -111,13 +111,7 @@ rn-rpa-app/
 
 ### 🎬 演示视频
 
-<div align="center">
-
-[![功能演示视频](https://img.shields.io/badge/🎥_B站观看-Auto%20RPA%20App%20演示-ff6b96.svg?style=for-the-badge&logo=bilibili)](https://www.bilibili.com/video/BV1ucMUzxEfC)
-
-**点击上方按钮观看完整功能演示 ↑**
-
-</div>
+https://github.com/user-attachments/assets/0331affe-a6d9-4609-aca6-13dcee63d495
 
 ---
 
