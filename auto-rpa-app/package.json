@@ -44,7 +44,7 @@
     "react": "19.1.0",
     "react-native": "0.80.0",
     "react-native-fs": "^2.20.0",
-    "react-native-http-bridge": "^0.6.0"
+    "react-native-http-bridge": "^0.6.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
