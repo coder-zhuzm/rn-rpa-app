@@ -32,7 +32,7 @@ on:
 # 环境变量 - 整个workflow都可以使用
 env:
   NODE_VERSION: '18'
-  JAVA_VERSION: '11'
+  JAVA_VERSION: '17'  # 更新到JDK 17，Android SDK工具要求
   ANDROID_API_LEVEL: '33'
 
 # 任务定义
@@ -232,10 +232,16 @@ jobs:
       # 设置Android SDK
       - name: 🤖 设置 Android SDK
         uses: android-actions/setup-android@v3
+        env:
+          SKIP_JDK_VERSION_CHECK: true  # 跳过JDK版本检查
         with:
-          api-level: ${{ env.ANDROID_API_LEVEL }}
-          build-tools: '33.0.0'
-          ndk: '25.1.8937393'
+          cmdline-tools-version: '11076708'  # 使用有效的参数
+          accept-android-sdk-licenses: true
+          packages: |
+            platform-tools
+            platforms;android-${{ env.ANDROID_API_LEVEL }}
+            build-tools;33.0.0
+            ndk;25.1.8937393
 
       - name: 🟢 设置 Node.js
         uses: actions/setup-node@v4
