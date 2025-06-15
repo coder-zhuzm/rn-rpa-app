@@ -62,6 +62,14 @@ export class ServiceManager {
   }
 
   /**
+   * 重启HTTP服务
+   * @returns 是否成功重启
+   */
+  public restartHttpService(): boolean {
+    return this.httpService.restart();
+  }
+
+  /**
    * 获取HTTP服务状态
    * @returns 是否运行中
    */

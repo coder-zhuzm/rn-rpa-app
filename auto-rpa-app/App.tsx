@@ -169,6 +169,26 @@ function App(): React.JSX.Element {
     }
   };
 
+  const handleRestartHttpServer = () => {
+    const serviceManager = ServiceManager.getInstance();
+    Alert.alert(
+      '确认重启',
+      '确定要重启HTTP服务器吗？这将暂时中断连接。',
+      [
+        {
+          text: '取消',
+          style: 'cancel',
+        },
+        {
+          text: '重启',
+          onPress: () => {
+            serviceManager.restartHttpService();
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={backgroundStyle}>
       <StatusBar
@@ -212,6 +232,15 @@ function App(): React.JSX.Element {
               {httpServerRunning ? '停止 HTTP 服务器' : '启动 HTTP 服务器'}
             </Text>
           </TouchableOpacity>
+
+          {httpServerRunning && (
+            <TouchableOpacity 
+              style={[styles.button, styles.buttonWarning]} 
+              onPress={handleRestartHttpServer}
+            >
+              <Text style={styles.buttonText}>🔄 重启 HTTP 服务器</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={handleLaunchSettings}>
             <Text style={styles.buttonText}>启动系统设置</Text>
@@ -333,6 +362,9 @@ const styles = StyleSheet.create({
   },
   buttonDanger: {
     backgroundColor: '#dc3545',
+  },
+  buttonWarning: {
+    backgroundColor: '#FF9500',
   },
   buttonText: {
     color: 'white',

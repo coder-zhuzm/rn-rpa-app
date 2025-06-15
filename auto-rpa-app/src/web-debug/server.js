@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
-const PORT = 3002;
+const PORT = 3000;
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',

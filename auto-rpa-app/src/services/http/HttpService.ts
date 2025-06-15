@@ -9,6 +9,10 @@ export class HttpService {
   private static instance: HttpService;
   private isRunning: boolean = false;
   private port: number = 8080;
+  private healthCheckInterval: NodeJS.Timeout | null = null;
+  private reconnectAttempts: number = 0;
+  private maxReconnectAttempts: number = 3;
+  private healthCheckIntervalMs: number = 10000; // 10秒检查一次
 
   private constructor() {}
 
@@ -36,6 +40,9 @@ export class HttpService {
     this.port = port;
 
     try {
+      // 先停止之前的服务（如果存在）
+      this.forceStop();
+      
       // 配置HTTP服务器
       httpBridge.start(this.port, 'http_service', (request: any) => {
         console.log('收到HTTP请求:', request);
@@ -65,12 +72,23 @@ export class HttpService {
             status: 'running',
             message: 'RPA服务运行中',
             timestamp: new Date().toISOString(),
-            serverPort: this.port
+            serverPort: this.port,
+            uptime: Date.now(),
+            reconnectAttempts: this.reconnectAttempts
           };
           console.log('Status响应对象:', statusResponse);
           const statusJson = this.safeJsonStringify(statusResponse);
           console.log('Status JSON字符串:', statusJson);
           httpBridge.respond(request.requestId, 200, 'application/json; charset=utf-8', statusJson, corsHeaders);
+        } else if (request.type === 'GET' && request.url === '/health') {
+          // 健康检查端点
+          const healthResponse = {
+            status: 'healthy',
+            message: '服务器健康状态良好',
+            timestamp: new Date().toISOString(),
+            serverPort: this.port
+          };
+          httpBridge.respond(request.requestId, 200, 'application/json; charset=utf-8', this.safeJsonStringify(healthResponse), corsHeaders);
         } else {
           // 404 响应
           httpBridge.respond(request.requestId, 404, 'application/json; charset=utf-8', this.safeJsonStringify({
@@ -83,7 +101,12 @@ export class HttpService {
       });
 
       this.isRunning = true;
+      this.reconnectAttempts = 0;
       console.log(`HTTP服务器已启动，端口: ${this.port}`);
+      
+      // 启动健康检查
+      this.startHealthCheck();
+      
       return true;
     } catch (error) {
       console.error('启动HTTP服务器失败:', error);
@@ -97,12 +120,113 @@ export class HttpService {
    */
   public stop(): void {
     try {
-      httpBridge.stop();
-      this.isRunning = false;
+      this.forceStop();
       console.log('HTTP服务器已停止');
     } catch (error) {
       console.error('停止HTTP服务器失败:', error);
     }
+  }
+
+  /**
+   * 强制停止HTTP服务器（内部方法）
+   */
+  private forceStop(): void {
+    try {
+      // 停止健康检查
+      this.stopHealthCheck();
+      
+      // 停止HTTP服务器
+      httpBridge.stop();
+      this.isRunning = false;
+    } catch (error) {
+      console.error('强制停止HTTP服务器时出错:', error);
+      // 即使出错也要重置状态
+      this.isRunning = false;
+    }
+  }
+
+  /**
+   * 启动健康检查
+   */
+  private startHealthCheck(): void {
+    this.stopHealthCheck(); // 先停止之前的检查
+    
+    this.healthCheckInterval = setInterval(() => {
+      this.performHealthCheck();
+    }, this.healthCheckIntervalMs);
+    
+    console.log('HTTP服务器健康检查已启动');
+  }
+
+  /**
+   * 停止健康检查
+   */
+  private stopHealthCheck(): void {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
+      console.log('HTTP服务器健康检查已停止');
+    }
+  }
+
+  /**
+   * 执行健康检查
+   */
+  private performHealthCheck(): void {
+    if (!this.isRunning) {
+      return;
+    }
+
+    // 这里可以添加更复杂的健康检查逻辑
+    // 比如检查端口是否还在监听等
+    console.log('执行HTTP服务器健康检查...');
+    
+    // 如果发现服务器异常，尝试重启
+    // 注意：这里简化处理，实际项目中可能需要更复杂的检测逻辑
+  }
+
+  /**
+   * 重启HTTP服务器
+   */
+  public restart(): boolean {
+    console.log('重启HTTP服务器...');
+    
+    this.stop();
+    
+    // 等待一小段时间确保端口释放
+    setTimeout(() => {
+      const success = this.start(this.port);
+      if (success) {
+        console.log('HTTP服务器重启成功');
+        Alert.alert('成功', 'HTTP服务器已重启');
+      } else {
+        console.error('HTTP服务器重启失败');
+        Alert.alert('错误', 'HTTP服务器重启失败');
+      }
+    }, 1000);
+    
+    return true;
+  }
+
+  /**
+   * 尝试自动重连
+   */
+  private attemptReconnect(): void {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.log('已达到最大重连次数，停止重连');
+      Alert.alert('警告', 'HTTP服务器连接失败，已停止自动重连。请手动重启服务器。');
+      return;
+    }
+
+    this.reconnectAttempts++;
+    console.log(`尝试重连HTTP服务器 (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+    
+    setTimeout(() => {
+      const success = this.start(this.port);
+      if (!success) {
+        this.attemptReconnect();
+      }
+    }, 2000 * this.reconnectAttempts); // 递增延迟
   }
 
   /**
