@@ -300,8 +300,6 @@ jobs:
           cat > gradle.properties << EOF
           # 启用并行构建
           org.gradle.parallel=true
-          # 启用配置缓存
-          org.gradle.configuration-cache=true
           # 启用构建缓存
           org.gradle.caching=true
           # 优化JVM参数
@@ -312,9 +310,13 @@ jobs:
           android.useAndroidX=true
           android.enableJetifier=true
           android.enableR8.fullMode=true
-          # 禁用不必要的任务
-          android.enableBuildCache=true
-          android.experimental.enableSourceSetPathsMap=true
+          # 禁用不必要的检查以加速构建
+          android.disableAutomaticComponentCreation=true
+          # 启用增量编译
+          kotlin.incremental=true
+          kotlin.incremental.android=true
+          # 启用并行GC
+          org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=1g -XX:+UseParallelGC -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
           EOF
           
           # 检查gradle wrapper权限
@@ -355,30 +357,26 @@ jobs:
           echo "💾 构建前内存状态:"
           free -h
           
-          # 根据构建类型选择不同的构建策略
-          if [ "${{ matrix.build-type }}" = "release" ]; then
-            echo "🚀 构建Release版本..."
-            ./gradlew assembleRelease \
-              --no-daemon \
-              --stacktrace \
-              --parallel \
-              --build-cache \
-              --configuration-cache \
-              -Dorg.gradle.workers.max=2 \
-              -Dkotlin.incremental=false \
-              -Dkotlin.compiler.execution.strategy=in-process
-          else
-            echo "🔧 构建Debug版本..."
-            ./gradlew assembleDebug \
-              --no-daemon \
-              --stacktrace \
-              --parallel \
-              --build-cache \
-              --configuration-cache \
-              -Dorg.gradle.workers.max=2 \
-              -Dkotlin.incremental=false \
-              -Dkotlin.compiler.execution.strategy=in-process
-          fi
+                     # 根据构建类型选择不同的构建策略
+           if [ "${{ matrix.build-type }}" = "release" ]; then
+             echo "🚀 构建Release版本..."
+             ./gradlew assembleRelease \
+               --no-daemon \
+               --stacktrace \
+               --parallel \
+               --build-cache \
+               -Dorg.gradle.workers.max=2 \
+               -Dkotlin.compiler.execution.strategy=in-process
+           else
+             echo "🔧 构建Debug版本..."
+             ./gradlew assembleDebug \
+               --no-daemon \
+               --stacktrace \
+               --parallel \
+               --build-cache \
+               -Dorg.gradle.workers.max=2 \
+               -Dkotlin.compiler.execution.strategy=in-process
+           fi
           
           # 显示构建后内存状态
           echo "💾 构建后内存状态:"
