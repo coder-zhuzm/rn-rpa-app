@@ -72,6 +72,11 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+/**
+ * Whether to enable the Hermes JS engine.
+ */
+def enableHermes = true
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -116,7 +121,7 @@ dependencies {
     implementation 'androidx.test:core:1.5.0'
     implementation 'androidx.test:monitor:1.7.2'
 
-    if (hermesEnabled.toBoolean()) {
+    if (enableHermes) {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
