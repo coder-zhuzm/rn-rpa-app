@@ -6,17 +6,19 @@ global.__DEV__ = true;
 // Mock NativeModules
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
-  
+
   RN.NativeModules.RPAServiceModule = {
     executeScript: jest.fn(() => Promise.resolve('Script executed successfully')),
-    getDeviceInfo: jest.fn(() => Promise.resolve({
-      model: 'Mock Device',
-      version: '1.0.0',
-      sdk: 28,
-    })),
+    getDeviceInfo: jest.fn(() =>
+      Promise.resolve({
+        model: 'Mock Device',
+        version: '1.0.0',
+        sdk: 28,
+      }),
+    ),
     checkPermissions: jest.fn(() => Promise.resolve(true)),
   };
-  
+
   return RN;
 });
 
@@ -28,8 +30,7 @@ const originalWarn = console.warn;
 beforeAll(() => {
   console.warn = (...args) => {
     if (
-      typeof args[0] === 'string' &&
-      args[0].includes('componentWillReceiveProps') ||
+      (typeof args[0] === 'string' && args[0].includes('componentWillReceiveProps')) ||
       args[0].includes('componentWillMount')
     ) {
       return;
@@ -40,4 +41,4 @@ beforeAll(() => {
 
 afterAll(() => {
   console.warn = originalWarn;
-}); 
+});

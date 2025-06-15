@@ -7,25 +7,32 @@
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "lint:imports": "eslint . --fix --rule 'import/order: [error, {groups: [builtin, external, internal, parent, sibling, index], newlines-between: always, alphabetize: {order: asc, caseInsensitive: true}}]'",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "type-check": "tsc --noEmit",
     "start": "react-native start",
     "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "web-debug": "node src/web-debug/start.js",
     "prepare": "husky",
     "pre-commit": "lint-staged",
-    "commit": "git-cz"
+    "commit": "git-cz",
+    "check-all": "npm run type-check && npm run lint && npm run format:check && npm run test -- --passWithNoTests",
+    "fix-all": "npm run lint:fix && npm run format",
+    "clean": "rm -rf node_modules && npm install",
+    "clean:android": "cd android && ./gradlew clean && cd ..",
+    "build:android": "cd android && ./gradlew assembleRelease && cd ..",
+    "install:android": "adb install android/app/build/outputs/apk/release/app-release.apk"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write",
-      "git add"
+      "eslint --fix --rule 'import/order: [error, {groups: [builtin, external, internal, parent, sibling, index], newlines-between: always, alphabetize: {order: asc, caseInsensitive: true}}]'",
+      "prettier --write"
     ],
     "*.{json,md,yml,yaml}": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ],
     "*.{ts,tsx}": [
       "bash -c 'tsc --noEmit'"

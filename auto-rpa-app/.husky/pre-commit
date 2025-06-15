@@ -1,11 +1,44 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# 运行 lint-staged 进行代码检查和格式化
+echo "🚀 开始 Pre-commit 检查..."
+
+# 1. 运行 lint-staged 进行代码检查和格式化
+echo "📝 运行代码格式化和ESLint检查..."
 npx lint-staged
 
-# 检查 TypeScript 类型
+# 检查 lint-staged 是否成功
+if [ $? -ne 0 ]; then
+  echo "❌ 代码格式化或ESLint检查失败"
+  echo "💡 请修复上述问题后重新提交"
+  exit 1
+fi
+
+# 2. 检查 TypeScript 类型
 echo "🔍 检查 TypeScript 类型..."
 npx tsc --noEmit
 
-echo "✅ Pre-commit 检查完成"
+# 检查 TypeScript 类型检查是否成功
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript 类型检查失败"
+  echo "💡 请修复类型错误后重新提交"
+  exit 1
+fi
+
+# 3. 运行测试
+echo "🧪 运行单元测试..."
+npm test -- --watchAll=false --passWithNoTests
+
+# 检查测试是否通过
+if [ $? -ne 0 ]; then
+  echo "❌ 单元测试失败"
+  echo "💡 请修复测试错误后重新提交"
+  exit 1
+fi
+
+# 4. 检查是否有未追踪的大文件
+echo "📦 检查文件大小..."
+find . -name "*.js" -o -name "*.ts" -o -name "*.tsx" -o -name "*.jsx" | xargs wc -l | awk '$1 > 500 { print "⚠️  大文件: " $2 " (" $1 " 行)" }'
+
+echo "✅ Pre-commit 检查完成！"
+echo "🎉 代码质量检查通过，准备提交..."

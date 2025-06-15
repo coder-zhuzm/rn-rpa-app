@@ -1,3 +1,27 @@
+# 🤖 RPA App - React Native 自动化应用
+
+这是一个基于 React Native 的 RPA（机器人流程自动化）应用，支持动态脚本执行、Web
+调试界面和 Android 设备自动化操作。
+
+## 📚 文档导航
+
+**🎯 快速导航**: [📚 完整文档索引](./DOCUMENTATION_INDEX.md) |
+[🚀 快速开始](./QUICK_START.md) | [📁 目录结构](./DIRECTORY_STRUCTURE.md) |
+[🔧 调试指南](./DEBUGGING_GUIDE.md)
+
+### 📖 主要文档
+
+- **[📚 文档索引](./DOCUMENTATION_INDEX.md)** - 所有文档的分类导航
+- **[🚀 快速开始指南](./QUICK_START.md)** - 新用户快速上手
+- **[📁 目录结构说明](./DIRECTORY_STRUCTURE.md)** - 项目文件结构详解
+- **[💻 开发命令手册](./doc/DEVELOPMENT_COMMANDS.md)** - 构建、调试、设备管理命
+  令
+- **[📜 脚本使用指南](./doc/SCRIPT_USAGE.md)** - 动态脚本编写和使用
+- **[🔧 调试指南](./DEBUGGING_GUIDE.md)** - 故障排除和问题解决
+- **[🌐 Web 调试界面](./src/web-debug/README.md)** - Web 调试功能说明
+
+---
+
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped
 using
 [`@react-native-community/cli`](https://github.com/react-native-community/cli).
@@ -174,3 +198,88 @@ npm run android
 # 启动Web调试服务器
 npm run web-debug
 ```
+
+## 开发命令
+
+### 代码质量检查
+
+```bash
+# 完整检查（类型、lint、格式、测试）
+npm run check-all
+
+# 自动修复所有可修复的问题
+npm run fix-all
+
+# ESLint 检查
+npm run lint
+
+# ESLint 自动修复
+npm run lint:fix
+
+# 修复 import 排序
+npm run lint:imports
+
+# 代码格式化
+npm run format
+
+# 检查代码格式
+npm run format:check
+
+# TypeScript 类型检查
+npm run type-check
+```
+
+### 测试相关
+
+```bash
+# 运行测试
+npm test
+
+# 监听模式运行测试
+npm run test:watch
+
+# 生成覆盖率报告
+npm run test:coverage
+```
+
+### Android 构建
+
+```bash
+# 清理 Android 构建
+npm run clean:android
+
+# 构建 Release APK
+npm run build:android
+
+# 安装 APK 到设备
+npm run install:android
+
+# 清理并重新安装依赖
+npm run clean
+```
+
+## Git 提交规范
+
+项目使用 [Conventional Commits](https://www.conventionalcommits.org/) 规范：
+
+```bash
+# 提交格式
+<type>(<scope>): <subject>
+
+# 示例
+feat(http): 添加服务器健康检查功能
+fix(ui): 修复重启按钮样式问题
+docs: 更新 README 安装说明
+```
+
+### 自动化检查
+
+每次提交前会自动运行：
+
+- ESLint 检查和修复
+- Prettier 格式化
+- Import 排序
+- TypeScript 类型检查
+- 单元测试
+
+如果检查失败，提交会被阻止。可以运行 `npm run fix-all` 自动修复大部分问题。

@@ -5,6 +5,7 @@
  * @format
  */
 
+import NetInfo from '@react-native-community/netinfo';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   SafeAreaView,
@@ -18,17 +19,15 @@ import {
   Alert,
 } from 'react-native';
 
+import { ScriptExecutor } from './src/components/ScriptExecutor';
+import RPAServiceModule from './src/modules/RPAServiceModule';
+import { ServiceManager } from './src/services/ServiceManager';
+
 // 定义颜色常量
 const Colors = {
   lighter: '#F3F3F3',
   darker: '#222222',
 };
-import { ScriptExecutor } from './src/components/ScriptExecutor';
-import RPAServiceModule from './src/modules/RPAServiceModule';
-
-import NetInfo from '@react-native-community/netinfo';
-
-import { ServiceManager } from './src/services/ServiceManager';
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';

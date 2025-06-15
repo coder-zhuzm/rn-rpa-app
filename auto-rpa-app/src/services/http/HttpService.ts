@@ -10,7 +10,7 @@ export class HttpService {
   private static instance: HttpService;
   private isRunning: boolean = false;
   private port: number = 8080;
-  private healthCheckInterval: NodeJS.Timeout | null = null;
+  private healthCheckInterval: ReturnType<typeof setInterval> | null = null;
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 3;
   private healthCheckIntervalMs: number = 10000; // 10秒检查一次
@@ -333,8 +333,9 @@ export class HttpService {
       console.log('脚本前100字符:', script.substring(0, 100));
 
       // 创建脚本执行上下文
+      const RPAServiceModuleImport = await import('../../modules/RPAServiceModule');
       const context: ScriptContext = {
-        RPAServiceModule: require('../../modules/RPAServiceModule').default,
+        RPAServiceModule: RPAServiceModuleImport.default,
         console,
         Alert,
       };

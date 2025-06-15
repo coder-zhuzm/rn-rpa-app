@@ -9,7 +9,6 @@ module.exports = {
 
   // JSX 相关
   jsxSingleQuote: false, // JSX中使用双引号
-  jsxBracketSameLine: false, // JSX标签的>换行
 
   // 尾随逗号
   trailingComma: 'all', // 多行时尾随逗号

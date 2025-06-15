@@ -86,7 +86,7 @@ export class ScriptErrorAnalyzer {
   /**
    * 分析语法错误
    */
-  private static analyzeSyntaxError(message: string, script?: string): ErrorAnalysis {
+  private static analyzeSyntaxError(message: string, _script?: string): ErrorAnalysis {
     if (message.includes('Unexpected token')) {
       return {
         category: '语法错误 - 意外的符号',
@@ -126,7 +126,7 @@ export class ScriptErrorAnalyzer {
   /**
    * 分析运行时错误
    */
-  private static analyzeRuntimeError(message: string, stack: string): ErrorAnalysis {
+  private static analyzeRuntimeError(message: string, _stack: string): ErrorAnalysis {
     if (message.includes('is not defined')) {
       const varName = this.extractVariableName(message, 'is not defined');
       return {

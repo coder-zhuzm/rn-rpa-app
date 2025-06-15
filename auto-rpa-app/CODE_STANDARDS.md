@@ -69,6 +69,8 @@ npm run format:check
    - 导入顺序规范（错误）
    - 禁止循环依赖（错误）
    - 自动移除未使用的导入（错误）
+   - 按组分类并字母排序
+   - 组间自动添加空行
 
 ### 检查命令
 
@@ -79,8 +81,17 @@ npm run lint
 # 自动修复可修复的问题
 npm run lint:fix
 
+# 修复 import 排序
+npm run lint:imports
+
 # TypeScript 类型检查
 npm run type-check
+
+# 完整检查（类型、lint、格式、测试）
+npm run check-all
+
+# 自动修复所有可修复的问题
+npm run fix-all
 ```
 
 ## 📝 Git 提交规范
@@ -180,9 +191,14 @@ const calculateTotal = (items: Item[]): number => {
 ### 导入导出
 
 ```typescript
-// ✅ 命名导入
-import { HttpService } from './services/HttpService';
-import { User, UserRole } from './types/User';
+// ✅ 正确的导入顺序（自动排序）
+import NetInfo from '@react-native-community/netinfo'; // 第三方库
+import React, { useState, useEffect } from 'react'; // 第三方库
+import { View, Text, Alert } from 'react-native'; // 第三方库
+
+import { ScriptExecutor } from './components/ScriptExecutor'; // 内部模块
+import { HttpService } from './services/HttpService'; // 内部模块
+import { User, UserRole } from './types/User'; // 内部模块
 
 // ✅ 默认导出
 export default class RPAService {
@@ -192,6 +208,19 @@ export default class RPAService {
 // ✅ 命名导出
 export { HttpService, ScriptManager };
 ```
+
+### Import 排序规则
+
+导入语句按以下顺序自动排序：
+
+1. **builtin**: Node.js 内置模块
+2. **external**: 第三方库（npm 包）
+3. **internal**: 内部模块（项目内文件）
+4. **parent**: 父级目录文件
+5. **sibling**: 同级目录文件
+6. **index**: index 文件
+
+每个组内按字母顺序排列，组间自动添加空行。
 
 ## 📱 React Native 规范
 
@@ -300,12 +329,40 @@ export const formatDate = (date: Date): string => {
 
 ### VSCode 设置
 
-项目包含了 VSCode 工作区配置：
+项目包含了 VSCode 工作区配置 (`.vscode/settings.json`)：
+
+#### 保存时自动操作
+
+```json
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit", // 自动修复 ESLint 问题
+    "source.organizeImports": "explicit", // 自动排序导入
+    "source.removeUnusedImports": "explicit" // 移除未使用导入
+  },
+  "editor.formatOnSave": true // 保存时自动格式化
+}
+```
+
+#### TypeScript 增强配置
+
+```json
+{
+  "typescript.preferences.organizeImportsIgnoreCase": false,
+  "typescript.preferences.organizeImportsCollation": "ordinal",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.suggest.autoImports": true
+}
+```
+
+#### 功能特性
 
 - 自动格式化保存
 - ESLint 自动修复
+- Import 自动排序
 - TypeScript 智能提示
 - 文件关联配置
+- 移除未使用导入
 
 ### 推荐扩展
 
@@ -341,9 +398,15 @@ export const formatDate = (date: Date): string => {
 3. **提交前**
 
    ```bash
-   npm run lint:fix
-   npm run format
-   npm run type-check
+   # 方式一：手动运行检查
+   npm run check-all
+
+   # 方式二：自动修复后提交
+   npm run fix-all
+   git add .
+   git commit -m "feat: 添加新功能"
+
+   # 方式三：直接提交（husky 会自动检查）
    git add .
    git commit -m "feat: 添加新功能"
    ```
@@ -357,11 +420,24 @@ export const formatDate = (date: Date): string => {
 
 ### Pre-commit 检查
 
-每次提交前自动运行：
+每次提交前自动运行（通过 Husky）：
 
-- ESLint 检查和修复
-- Prettier 格式化
-- TypeScript 类型检查
+1. **代码格式化和 ESLint 检查** (lint-staged)
+
+   - ESLint 自动修复
+   - Prettier 格式化
+   - Import 排序
+
+2. **TypeScript 类型检查**
+
+   - `tsc --noEmit` 验证类型
+
+3. **单元测试**
+
+   - Jest 测试运行
+
+4. **文件大小检查**
+   - 检测大文件警告
 
 ### Commit 信息检查
 
