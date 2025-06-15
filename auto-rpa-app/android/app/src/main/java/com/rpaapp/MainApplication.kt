@@ -19,6 +19,7 @@ class MainApplication : Application(), ReactApplication {
               // Packages that cannot be autolinked yet can be added manually here, for example:
               // add(MyReactNativePackage())
               // TODO: Add HttpServerReactPackage when dependency issues are resolved
+              add(RPAServicePackage())
             }
 
         override fun getJSMainModuleName(): String = "index"

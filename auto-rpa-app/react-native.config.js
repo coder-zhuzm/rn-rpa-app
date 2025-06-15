@@ -2,7 +2,10 @@ module.exports = {
   dependencies: {
     'react-native-http-bridge': {
       platforms: {
-        android: null, // disable Android platform auto linking
+        android: {
+          sourceDir: '../node_modules/react-native-http-bridge/android/',
+          packageImportPath: 'import me.alwx.HttpServer.HttpServerReactPackage;',
+        },
       },
     },
   },
