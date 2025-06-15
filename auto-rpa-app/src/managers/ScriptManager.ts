@@ -47,7 +47,7 @@ export class ScriptManager {
     console.log('🚀 开始执行脚本...');
     console.log('📜 脚本长度:', script.length);
     console.log('🔧 上下文键:', Object.keys(context));
-    
+
     try {
       // 验证脚本语法
       const validation = this.validateScript(script);
@@ -55,7 +55,7 @@ export class ScriptManager {
         console.error('❌ 脚本语法验证失败:', validation.error);
         return {
           success: false,
-          error: `语法错误: ${validation.error}`
+          error: `语法错误: ${validation.error}`,
         };
       }
 
@@ -90,14 +90,14 @@ export class ScriptManager {
       `;
 
       // 创建动态函数
-      // eslint-disable-next-line no-new-func
-      const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-      // eslint-disable-next-line no-new-func
+
+      const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+
       const scriptFunction = new AsyncFunction(...contextKeys, functionBody);
 
       console.log('⚡ 执行脚本函数...');
       const result = await scriptFunction(...contextValues);
-      
+
       if (result.success) {
         console.log('✅ 脚本执行成功:', result);
       } else {
@@ -108,15 +108,15 @@ export class ScriptManager {
     } catch (error: unknown) {
       // 这里是ScriptManager层面的错误，不是用户脚本的错误
       console.error('💥 ScriptManager执行失败 - 这是系统级错误:');
-      
+
       const err = error as Error;
       console.error('错误类型:', err.constructor.name);
       console.error('错误消息:', err.message);
       console.error('错误堆栈:', err.stack);
-      
+
       // 使用错误分析器进行详细分析
       const analysis = ScriptErrorAnalyzer.analyzeError(err, script);
-      
+
       // 生成并打印详细的错误报告
       const errorReport = ScriptErrorAnalyzer.generateErrorReport(err, script);
       console.error('📊 详细错误分析:\n', errorReport);
@@ -126,7 +126,7 @@ export class ScriptManager {
         error: `${analysis.category}: ${err.message || '未知错误'}`,
         errorType: err.constructor.name,
         suggestion: analysis.suggestion,
-        stack: err.stack
+        stack: err.stack,
       };
     }
   }
@@ -144,10 +144,10 @@ export class ScriptManager {
       return { valid: true };
     } catch (error: unknown) {
       const err = error as Error;
-      return { 
-        valid: false, 
-        error: err.message || '语法错误'
+      return {
+        valid: false,
+        error: err.message || '语法错误',
       };
     }
   }
-} 
+}

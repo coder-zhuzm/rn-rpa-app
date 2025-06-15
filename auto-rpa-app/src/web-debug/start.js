@@ -22,4 +22,4 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-console.log('按 Ctrl+C 停止服务器'); 
+console.log('按 Ctrl+C 停止服务器');

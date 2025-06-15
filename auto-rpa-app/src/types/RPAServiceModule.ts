@@ -4,4 +4,4 @@ export interface RPAServiceModuleInterface {
   launchWifiSettings(): Promise<string>;
   launchBluetoothSettings(): Promise<string>;
   launchAppByPackage(packageName: string): Promise<string>;
-} 
+}

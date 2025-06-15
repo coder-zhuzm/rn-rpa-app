@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+
 import { ScriptResult } from '../managers/ScriptManager';
 import { ScriptErrorAnalyzer } from '../utils/ScriptErrorAnalyzer';
 
@@ -20,7 +21,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error, script, onDis
 
   // 生成详细的错误分析
   const analysis = ScriptErrorAnalyzer.analyzeError(error.error || '未知错误', script);
-  
+
   const showFullReport = () => {
     const report = ScriptErrorAnalyzer.generateErrorReport(error.error || '未知错误', script);
     Alert.alert('详细错误报告', report, [{ text: '确定' }]);
@@ -80,7 +81,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error, script, onDis
             <Text style={styles.sectionTitle}>🔍 调试信息</Text>
             <Text style={styles.debugText}>错误类型: {error.errorType}</Text>
             {error.stack && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => Alert.alert('错误堆栈', error.stack || '无堆栈信息')}
                 style={styles.stackButton}
               >
@@ -215,4 +216,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-}); 
+});

@@ -2,7 +2,9 @@
 
 ## 📋 概述
 
-RPA App 支持通过 `adb push` 命令直接推送 JavaScript 脚本文件到设备，应用会自动扫描并加载这些外部脚本。这个功能让开发者可以快速测试和部署自动化脚本，无需重新构建应用。
+RPA App 支持通过 `adb push` 命令直接推送 JavaScript 脚本文件到设备，应用会自动扫
+描并加载这些外部脚本。这个功能让开发者可以快速测试和部署自动化脚本，无需重新构建
+应用。
 
 ## 🎯 功能特性
 
@@ -71,18 +73,18 @@ adb shell ls -la /sdcard/rpa-scripts/
 // 脚本描述注释
 // 通过 adb push 推送的外部脚本
 
-console.log("🚀 脚本开始执行");
-console.log("脚本来源: adb push");
+console.log('🚀 脚本开始执行');
+console.log('脚本来源: adb push');
 
 // 你的自动化逻辑
 RPAServiceModule.start();
 
 // 返回 Promise (可选)
-return new Promise(function(resolve, reject) {
+return new Promise(function (resolve, reject) {
   // 异步操作
-  setTimeout(function() {
-    console.log("脚本执行完成");
-    resolve("执行成功");
+  setTimeout(function () {
+    console.log('脚本执行完成');
+    resolve('执行成功');
   }, 1000);
 });
 ```
@@ -91,17 +93,17 @@ return new Promise(function(resolve, reject) {
 
 ```javascript
 // RPA 服务模块
-RPAServiceModule.start()                           // 启动 RPA 服务
-RPAServiceModule.launchSettings()                  // 启动系统设置
-RPAServiceModule.launchWifiSettings()              // 启动 WiFi 设置
-RPAServiceModule.launchBluetoothSettings()         // 启动蓝牙设置
-RPAServiceModule.launchAppByPackage(packageName)   // 启动指定应用
+RPAServiceModule.start(); // 启动 RPA 服务
+RPAServiceModule.launchSettings(); // 启动系统设置
+RPAServiceModule.launchWifiSettings(); // 启动 WiFi 设置
+RPAServiceModule.launchBluetoothSettings(); // 启动蓝牙设置
+RPAServiceModule.launchAppByPackage(packageName); // 启动指定应用
 
 // 全局对象
-console.log()                                      // 控制台输出
-Alert.alert(title, message)                       // 显示弹窗
-setTimeout(callback, delay)                        // 延时执行
-Promise                                            // Promise 支持
+console.log(); // 控制台输出
+Alert.alert(title, message); // 显示弹窗
+setTimeout(callback, delay); // 延时执行
+Promise; // Promise 支持
 ```
 
 ### 语法要求
@@ -129,61 +131,65 @@ async/await                           // 使用 Promise.then() 替代
 
 ```javascript
 // test-external-script.js
-console.log("🚀 外部脚本开始执行");
-console.log("脚本来源: adb push");
+console.log('🚀 外部脚本开始执行');
+console.log('脚本来源: adb push');
 
 RPAServiceModule.start();
 
-return RPAServiceModule.launchAppByPackage('com.android.calculator2')
-  .then(function(result) {
-    Alert.alert("测试完成", "计算器启动成功: " + result);
+return RPAServiceModule.launchAppByPackage('com.android.calculator2').then(
+  function (result) {
+    Alert.alert('测试完成', '计算器启动成功: ' + result);
     return result;
-  });
+  },
+);
 ```
 
 ### 2. WiFi 设置脚本
 
 ```javascript
 // wifi-settings-script.js
-console.log("🔧 WiFi 设置脚本开始执行");
+console.log('🔧 WiFi 设置脚本开始执行');
 
-return RPAServiceModule.launchWifiSettings()
-  .then(function(result) {
-    Alert.alert("WiFi 设置", "WiFi 设置已启动！");
-    return result;
-  });
+return RPAServiceModule.launchWifiSettings().then(function (result) {
+  Alert.alert('WiFi 设置', 'WiFi 设置已启动！');
+  return result;
+});
 ```
 
 ### 3. 自动化序列脚本
 
 ```javascript
 // automation-sequence.js
-console.log("🤖 自动化序列开始执行");
+console.log('🤖 自动化序列开始执行');
 
-var steps = ["启动服务", "打开设置", "启动计算器"];
+var steps = ['启动服务', '打开设置', '启动计算器'];
 var currentStep = 0;
 
 function executeNextStep() {
   if (currentStep >= steps.length) {
-    Alert.alert("完成", "自动化序列执行完成！");
-    return Promise.resolve("完成");
+    Alert.alert('完成', '自动化序列执行完成！');
+    return Promise.resolve('完成');
   }
-  
+
   var step = steps[currentStep++];
-  console.log("执行步骤: " + step);
-  
+  console.log('执行步骤: ' + step);
+
   // 根据步骤执行不同操作
   switch (currentStep) {
-    case 1: return Promise.resolve(RPAServiceModule.start());
-    case 2: return RPAServiceModule.launchSettings();
-    case 3: return RPAServiceModule.launchAppByPackage('com.android.calculator2');
-    default: return Promise.resolve("未知步骤");
+    case 1:
+      return Promise.resolve(RPAServiceModule.start());
+    case 2:
+      return RPAServiceModule.launchSettings();
+    case 3:
+      return RPAServiceModule.launchAppByPackage('com.android.calculator2');
+    default:
+      return Promise.resolve('未知步骤');
   }
 }
 
 // 递归执行所有步骤
 function runSequence() {
-  return executeNextStep().then(function(result) {
+  return executeNextStep().then(function (result) {
     if (currentStep < steps.length) {
       return runSequence();
     }
@@ -240,6 +246,7 @@ adb shell rm -rf /sdcard/rpa-scripts/*
 ### 常见问题
 
 1. **权限被拒绝**
+
    ```bash
    # 确保设备已授予存储权限
    adb shell pm grant com.rpaapp android.permission.WRITE_EXTERNAL_STORAGE
@@ -247,10 +254,11 @@ adb shell rm -rf /sdcard/rpa-scripts/*
    ```
 
 2. **脚本不显示**
+
    ```bash
    # 检查文件是否推送成功
    adb shell ls -la /sdcard/rpa-scripts/
-   
+
    # 重启应用
    adb shell am force-stop com.rpaapp
    adb shell am start -n com.rpaapp/.MainActivity
@@ -266,20 +274,20 @@ adb shell rm -rf /sdcard/rpa-scripts/*
 
 ```javascript
 // 在脚本中添加详细日志
-console.log("=== 脚本开始 ===");
-console.log("当前时间:", new Date().toLocaleString());
-console.log("脚本参数:", arguments);
+console.log('=== 脚本开始 ===');
+console.log('当前时间:', new Date().toLocaleString());
+console.log('脚本参数:', arguments);
 
 try {
   // 你的代码
   var result = RPAServiceModule.start();
-  console.log("操作成功:", result);
+  console.log('操作成功:', result);
 } catch (error) {
-  console.error("操作失败:", error);
-  Alert.alert("错误", "脚本执行失败: " + error);
+  console.error('操作失败:', error);
+  Alert.alert('错误', '脚本执行失败: ' + error);
 }
 
-console.log("=== 脚本结束 ===");
+console.log('=== 脚本结束 ===');
 ```
 
 ## 📚 最佳实践
@@ -308,4 +316,4 @@ adb push . /sdcard/rpa-scripts/
 
 ---
 
-通过 adb push 功能，您可以快速迭代和测试自动化脚本，大大提高开发效率！🚀 
+通过 adb push 功能，您可以快速迭代和测试自动化脚本，大大提高开发效率！🚀

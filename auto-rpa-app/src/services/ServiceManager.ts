@@ -26,10 +26,10 @@ export class ServiceManager {
    */
   public startAllServices(): void {
     console.log('启动所有服务...');
-    
+
     // 启动HTTP服务
     this.startHttpService();
-    
+
     console.log('所有服务启动完成');
   }
 
@@ -38,10 +38,10 @@ export class ServiceManager {
    */
   public stopAllServices(): void {
     console.log('停止所有服务...');
-    
+
     // 停止HTTP服务
     this.stopHttpService();
-    
+
     console.log('所有服务已停止');
   }
 
@@ -84,4 +84,4 @@ export class ServiceManager {
   public getHttpServicePort(): number {
     return this.httpService.getPort();
   }
-} 
+}

@@ -17,14 +17,17 @@ import {
   View,
   Alert,
 } from 'react-native';
+
 // 定义颜色常量
 const Colors = {
   lighter: '#F3F3F3',
   darker: '#222222',
 };
-import RPAServiceModule from './src/modules/RPAServiceModule';
 import { ScriptExecutor } from './src/components/ScriptExecutor';
+import RPAServiceModule from './src/modules/RPAServiceModule';
+
 import NetInfo from '@react-native-community/netinfo';
+
 import { ServiceManager } from './src/services/ServiceManager';
 
 function App(): React.JSX.Element {
@@ -171,22 +174,18 @@ function App(): React.JSX.Element {
 
   const handleRestartHttpServer = () => {
     const serviceManager = ServiceManager.getInstance();
-    Alert.alert(
-      '确认重启',
-      '确定要重启HTTP服务器吗？这将暂时中断连接。',
-      [
-        {
-          text: '取消',
-          style: 'cancel',
+    Alert.alert('确认重启', '确定要重启HTTP服务器吗？这将暂时中断连接。', [
+      {
+        text: '取消',
+        style: 'cancel',
+      },
+      {
+        text: '重启',
+        onPress: () => {
+          serviceManager.restartHttpService();
         },
-        {
-          text: '重启',
-          onPress: () => {
-            serviceManager.restartHttpService();
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
@@ -195,9 +194,7 @@ function App(): React.JSX.Element {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
+      <ScrollView contentInsetAdjustmentBehavior="automatic" style={backgroundStyle}>
         <View style={styles.container}>
           <Text style={styles.title}>RPA App</Text>
           <Text style={styles.subtitle}>React Native + Android 原生模块</Text>
@@ -211,11 +208,15 @@ function App(): React.JSX.Element {
               <>
                 <Text style={styles.serverPortText}>端口: {serverPort}</Text>
                 <Text style={styles.serverIpText}>设备IP: {ipAddress}</Text>
-                {ipAddress && ipAddress !== '获取中...' && ipAddress !== '获取失败' && ipAddress !== '未连接网络' && !ipAddress.includes('移动网络') && (
-                  <Text style={styles.serverUrlText}>
-                    访问地址: http://{ipAddress}:{serverPort}
-                  </Text>
-                )}
+                {ipAddress &&
+                  ipAddress !== '获取中...' &&
+                  ipAddress !== '获取失败' &&
+                  ipAddress !== '未连接网络' &&
+                  !ipAddress.includes('移动网络') && (
+                    <Text style={styles.serverUrlText}>
+                      访问地址: http://{ipAddress}:{serverPort}
+                    </Text>
+                  )}
               </>
             )}
           </View>
@@ -224,8 +225,8 @@ function App(): React.JSX.Element {
             <Text style={styles.buttonText}>启动 RPA 服务</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.button, httpServerRunning ? styles.buttonDanger : styles.buttonSuccess]} 
+          <TouchableOpacity
+            style={[styles.button, httpServerRunning ? styles.buttonDanger : styles.buttonSuccess]}
             onPress={handleToggleHttpServer}
           >
             <Text style={styles.buttonText}>
@@ -234,27 +235,39 @@ function App(): React.JSX.Element {
           </TouchableOpacity>
 
           {httpServerRunning && (
-            <TouchableOpacity 
-              style={[styles.button, styles.buttonWarning]} 
+            <TouchableOpacity
+              style={[styles.button, styles.buttonWarning]}
               onPress={handleRestartHttpServer}
             >
               <Text style={styles.buttonText}>🔄 重启 HTTP 服务器</Text>
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={handleLaunchSettings}>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonSecondary]}
+            onPress={handleLaunchSettings}
+          >
             <Text style={styles.buttonText}>启动系统设置</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.button, styles.buttonTertiary]} onPress={handleLaunchWifiSettings}>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonTertiary]}
+            onPress={handleLaunchWifiSettings}
+          >
             <Text style={styles.buttonText}>启动 WiFi 设置</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.button, styles.buttonQuaternary]} onPress={handleLaunchBluetoothSettings}>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonQuaternary]}
+            onPress={handleLaunchBluetoothSettings}
+          >
             <Text style={styles.buttonText}>启动蓝牙设置</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.button, styles.buttonQuinary]} onPress={handleLaunchCalculator}>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonQuinary]}
+            onPress={handleLaunchCalculator}
+          >
             <Text style={styles.buttonText}>启动计算器</Text>
           </TouchableOpacity>
 
@@ -266,21 +279,16 @@ function App(): React.JSX.Element {
           </TouchableOpacity>
 
           <Text style={styles.description}>
-            • 启动 RPA 服务：初始化 UI Automator 功能{'\n'}
-            • HTTP 服务器：接收来自Web页面的远程脚本执行请求{'\n'}
-            • 启动系统设置：打开 Android 系统设置{'\n'}
-            • 启动 WiFi 设置：直接打开 WiFi 设置页面{'\n'}
-            • 启动蓝牙设置：直接打开蓝牙设置页面{'\n'}
-            • 脚本执行器：动态加载和执行 JavaScript 脚本{'\n'}
+            • 启动 RPA 服务：初始化 UI Automator 功能{'\n'}• HTTP
+            服务器：接收来自Web页面的远程脚本执行请求{'\n'}• 启动系统设置：打开 Android 系统设置
+            {'\n'}• 启动 WiFi 设置：直接打开 WiFi 设置页面{'\n'}• 启动蓝牙设置：直接打开蓝牙设置页面
+            {'\n'}• 脚本执行器：动态加载和执行 JavaScript 脚本{'\n'}
             请查看 Android 日志获取详细信息
           </Text>
         </View>
       </ScrollView>
 
-      <ScriptExecutor
-        visible={showScriptExecutor}
-        onClose={() => setShowScriptExecutor(false)}
-      />
+      <ScriptExecutor visible={showScriptExecutor} onClose={() => setShowScriptExecutor(false)} />
     </SafeAreaView>
   );
 }

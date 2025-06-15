@@ -9,9 +9,11 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+
 import { ScriptManager, ScriptContext, ScriptResult } from '../managers/ScriptManager';
-import { ErrorDisplay } from './ErrorDisplay';
 import RPAServiceModule from '../modules/RPAServiceModule';
+
+import { ErrorDisplay } from './ErrorDisplay';
 
 interface ScriptExecutorProps {
   visible: boolean;
@@ -45,7 +47,7 @@ export const ScriptExecutor: React.FC<ScriptExecutorProps> = ({ visible, onClose
       // 执行脚本
       const scriptManager = ScriptManager.getInstance();
       const executionResult = await scriptManager.executeScript(script, context);
-      
+
       // 保存完整的执行结果用于错误分析
       setScriptResult(executionResult);
 
@@ -61,9 +63,9 @@ export const ScriptExecutor: React.FC<ScriptExecutorProps> = ({ visible, onClose
         success: false,
         error: error instanceof Error ? error.message : String(error),
         errorType: error instanceof Error ? error.constructor.name : 'Unknown',
-        stack: error instanceof Error ? error.stack : undefined
+        stack: error instanceof Error ? error.stack : undefined,
       };
-      
+
       setScriptResult(errorResult);
       setResult(`💥 执行异常:\n${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -79,14 +81,10 @@ export const ScriptExecutor: React.FC<ScriptExecutorProps> = ({ visible, onClose
 
   const handleClose = () => {
     if (isExecuting) {
-      Alert.alert(
-        '警告',
-        '脚本正在执行中，确定要关闭吗？',
-        [
-          { text: '取消', style: 'cancel' },
-          { text: '确定', onPress: onClose }
-        ]
-      );
+      Alert.alert('警告', '脚本正在执行中，确定要关闭吗？', [
+        { text: '取消', style: 'cancel' },
+        { text: '确定', onPress: onClose },
+      ]);
     } else {
       onClose();
     }
@@ -121,12 +119,7 @@ return "计算器操作完成: 789 + 123";`);
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={handleClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={handleClose}>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>脚本执行器</Text>
@@ -176,8 +169,8 @@ return "计算器操作完成: 789 + 123";`);
 
         {/* 错误展示组件 */}
         {scriptResult && !scriptResult.success && (
-          <ErrorDisplay 
-            error={scriptResult} 
+          <ErrorDisplay
+            error={scriptResult}
             script={script}
             onDismiss={() => setScriptResult(null)}
           />
@@ -283,4 +276,4 @@ const styles = StyleSheet.create({
     color: '#333',
     fontFamily: 'monospace',
   },
-}); 
+});

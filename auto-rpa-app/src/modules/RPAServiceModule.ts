@@ -104,4 +104,4 @@ interface RPAServiceModuleInterface {
  */
 const RPAServiceModule = NativeModules.RPAServiceModule as RPAServiceModuleInterface;
 
-export default RPAServiceModule; 
+export default RPAServiceModule;

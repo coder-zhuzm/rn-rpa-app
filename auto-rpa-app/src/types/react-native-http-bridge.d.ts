@@ -11,14 +11,14 @@ declare module 'react-native-http-bridge' {
     start(port: number, serviceName: string, callback: (request: HttpRequest) => void): void;
     stop(): void;
     respond(
-      requestId: string, 
-      code: number, 
-      type: string, 
-      body: string, 
-      headers?: { [key: string]: string }
+      requestId: string,
+      code: number,
+      type: string,
+      body: string,
+      headers?: { [key: string]: string },
     ): void;
   }
 
   const httpBridge: HttpBridge;
   export default httpBridge;
-} 
+}

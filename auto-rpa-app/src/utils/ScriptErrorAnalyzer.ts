@@ -48,7 +48,7 @@ export class ScriptErrorAnalyzer {
       'Invalid or unexpected token',
       'Unexpected identifier',
       'Missing',
-      'Expected'
+      'Expected',
     ];
     return syntaxKeywords.some(keyword => message.includes(keyword));
   }
@@ -63,7 +63,7 @@ export class ScriptErrorAnalyzer {
       'Cannot read properties',
       'is not a function',
       'Cannot access before initialization',
-      'Assignment to constant variable'
+      'Assignment to constant variable',
     ];
     return runtimeKeywords.some(keyword => message.includes(keyword));
   }
@@ -78,7 +78,7 @@ export class ScriptErrorAnalyzer {
       'UI Automator',
       'launchSettings',
       'clickByText',
-      'Native module'
+      'Native module',
     ];
     return rpaKeywords.some(keyword => message.includes(keyword));
   }
@@ -96,8 +96,8 @@ export class ScriptErrorAnalyzer {
           '正确: console.log("Hello");',
           '错误: console.log("Hello";',
           '正确: { "key": "value" }',
-          '错误: { key: "value" }'
-        ]
+          '错误: { key: "value" }',
+        ],
       };
     }
 
@@ -110,8 +110,8 @@ export class ScriptErrorAnalyzer {
           '正确: if (condition) { console.log("test"); }',
           '错误: if (condition) { console.log("test");',
           '正确: console.log("Hello World");',
-          '错误: console.log("Hello World"'
-        ]
+          '错误: console.log("Hello World"',
+        ],
       };
     }
 
@@ -119,11 +119,7 @@ export class ScriptErrorAnalyzer {
       category: '语法错误',
       description: '脚本语法不符合JavaScript规范',
       suggestion: '使用在线JavaScript语法检查器验证代码，或在浏览器控制台中测试脚本片段',
-      examples: [
-        '使用有效的JavaScript语法',
-        '确保所有语句以分号结尾',
-        '检查变量和函数名的拼写'
-      ]
+      examples: ['使用有效的JavaScript语法', '确保所有语句以分号结尾', '检查变量和函数名的拼写'],
     };
   }
 
@@ -141,8 +137,8 @@ export class ScriptErrorAnalyzer {
           '正确: const message = "Hello"; console.log(message);',
           '错误: console.log(mesage); // 拼写错误',
           '正确: RPAServiceModule.launchSettings();',
-          '错误: RPAModule.launchSettings(); // 模块名错误'
-        ]
+          '错误: RPAModule.launchSettings(); // 模块名错误',
+        ],
       };
     }
 
@@ -154,8 +150,8 @@ export class ScriptErrorAnalyzer {
         examples: [
           '安全访问: obj?.property',
           '条件检查: if (obj && obj.property) { ... }',
-          '默认值: const value = obj?.property || "default";'
-        ]
+          '默认值: const value = obj?.property || "default";',
+        ],
       };
     }
 
@@ -167,8 +163,8 @@ export class ScriptErrorAnalyzer {
         examples: [
           '正确: RPAServiceModule.launchSettings()',
           '错误: RPAServiceModule.launchSettings // 缺少括号',
-          '检查: typeof functionName === "function"'
-        ]
+          '检查: typeof functionName === "function"',
+        ],
       };
     }
 
@@ -179,8 +175,8 @@ export class ScriptErrorAnalyzer {
       examples: [
         '使用try-catch包装可能出错的代码',
         '添加console.log输出调试信息',
-        '分步执行脚本定位问题'
-      ]
+        '分步执行脚本定位问题',
+      ],
     };
   }
 
@@ -196,9 +192,9 @@ export class ScriptErrorAnalyzer {
         examples: [
           '启动RPA服务: RPAServiceModule.start()',
           '检查模块可用性: typeof RPAServiceModule !== "undefined"',
-          '正确调用: await RPAServiceModule.launchSettings()'
+          '正确调用: await RPAServiceModule.launchSettings()',
         ],
-        relatedDocs: ['RPA模块API文档', '原生模块调试指南']
+        relatedDocs: ['RPA模块API文档', '原生模块调试指南'],
       };
     }
 
@@ -207,12 +203,8 @@ export class ScriptErrorAnalyzer {
         category: 'RPA权限错误',
         description: 'RPA操作需要更高权限或无障碍服务未启用',
         suggestion: '检查应用权限设置，确保无障碍服务已启用',
-        examples: [
-          '启用无障碍服务',
-          '授予必要的系统权限',
-          '检查设备管理员权限'
-        ],
-        relatedDocs: ['权限配置指南', '无障碍服务设置']
+        examples: ['启用无障碍服务', '授予必要的系统权限', '检查设备管理员权限'],
+        relatedDocs: ['权限配置指南', '无障碍服务设置'],
       };
     }
 
@@ -220,11 +212,7 @@ export class ScriptErrorAnalyzer {
       category: 'RPA系统错误',
       description: 'RPA系统功能调用异常',
       suggestion: '检查设备状态，重启应用，或查看系统日志获取更多信息',
-      examples: [
-        '重启RPA应用',
-        '检查设备状态',
-        '查看Android系统日志'
-      ]
+      examples: ['重启RPA应用', '检查设备状态', '查看Android系统日志'],
     };
   }
 
@@ -236,11 +224,7 @@ export class ScriptErrorAnalyzer {
       category: '未知错误',
       description: message || '发生了未知错误',
       suggestion: '检查脚本语法和逻辑，查看完整的错误堆栈信息',
-      examples: [
-        '添加try-catch错误处理',
-        '使用console.log添加调试信息',
-        '分步测试脚本功能'
-      ]
+      examples: ['添加try-catch错误处理', '使用console.log添加调试信息', '分步测试脚本功能'],
     };
   }
 
@@ -260,7 +244,7 @@ export class ScriptErrorAnalyzer {
    */
   public static generateErrorReport(error: Error | string, script?: string): string {
     const analysis = this.analyzeError(error, script);
-    
+
     return `
 🚨 脚本执行错误报告
 ==================
@@ -272,7 +256,11 @@ export class ScriptErrorAnalyzer {
 📚 示例代码:
 ${analysis.examples.map(example => `  • ${example}`).join('\n')}
 
-${analysis.relatedDocs ? `📖 相关文档:\n${analysis.relatedDocs.map(doc => `  • ${doc}`).join('\n')}` : ''}
+${
+  analysis.relatedDocs
+    ? `📖 相关文档:\n${analysis.relatedDocs.map(doc => `  • ${doc}`).join('\n')}`
+    : ''
+}
 
 🔍 调试提示:
   • 在浏览器开发者工具中测试脚本片段
@@ -283,4 +271,4 @@ ${analysis.relatedDocs ? `📖 相关文档:\n${analysis.relatedDocs.map(doc => 
 📞 如需更多帮助，请查看调试指南: DEBUGGING_GUIDE.md
 `.trim();
   }
-} 
+}

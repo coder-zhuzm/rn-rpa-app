@@ -2,7 +2,8 @@
 
 ## 📋 概述
 
-这个目录包含了所有用于测试 RPA App 功能的脚本文件。所有测试脚本都使用 ES5 语法编写，确保与 React Native 的 Hermes 引擎兼容。
+这个目录包含了所有用于测试 RPA App 功能的脚本文件。所有测试脚本都使用 ES5 语法编
+写，确保与 React Native 的 Hermes 引擎兼容。
 
 ## 📁 目录结构
 
@@ -19,7 +20,9 @@ test-scripts/
 ## 🧪 测试脚本说明
 
 ### 1. test-external-script.js
+
 **功能**: 外部脚本基础功能测试
+
 - ✅ 测试 adb push 脚本加载
 - ✅ 测试 RPA 服务启动
 - ✅ 测试应用启动功能（计算器）
@@ -29,7 +32,9 @@ test-scripts/
 **使用场景**: 验证外部脚本的基本功能是否正常工作
 
 ### 2. wifi-settings-script.js
+
 **功能**: WiFi 设置页面启动测试
+
 - ✅ 测试系统设置页面访问
 - ✅ 测试 UI Automator 功能
 - ✅ 测试 Promise 链式调用
@@ -38,7 +43,9 @@ test-scripts/
 **使用场景**: 验证应用能否正确启动系统 WiFi 设置页面
 
 ### 3. automation-sequence.js
+
 **功能**: 复杂自动化序列测试
+
 - ✅ 测试多步骤自动化流程
 - ✅ 测试递归 Promise 调用
 - ✅ 测试步骤间的时序控制
@@ -48,7 +55,9 @@ test-scripts/
 **使用场景**: 验证复杂自动化任务的执行能力
 
 ### 4. test-adb-push.sh
+
 **功能**: ADB 推送测试自动化工具
+
 - ✅ 自动检查设备连接状态
 - ✅ 自动创建外部脚本目录
 - ✅ 批量推送测试脚本
@@ -105,24 +114,24 @@ adb -s emulator-5554 logcat -s ReactNativeJS | grep "脚本"
 // 脚本名称和功能描述
 // 测试目标: [具体测试的功能]
 
-console.log("🧪 [脚本名称] 开始执行");
-console.log("测试目标: [功能描述]");
-console.log("执行时间:", new Date().toLocaleString());
+console.log('🧪 [脚本名称] 开始执行');
+console.log('测试目标: [功能描述]');
+console.log('执行时间:', new Date().toLocaleString());
 
 // 测试逻辑
 try {
   // 主要测试代码
   var result = RPAServiceModule.someFunction();
-  console.log("✅ 测试成功:", result);
-  
+  console.log('✅ 测试成功:', result);
+
   // 用户反馈
-  Alert.alert("测试结果", "功能测试通过: " + result);
-  
+  Alert.alert('测试结果', '功能测试通过: ' + result);
+
   // 返回结果
   return Promise.resolve(result);
 } catch (error) {
-  console.error("❌ 测试失败:", error);
-  Alert.alert("测试失败", "错误信息: " + error);
+  console.error('❌ 测试失败:', error);
+  Alert.alert('测试失败', '错误信息: ' + error);
   return Promise.reject(error);
 }
 ```
@@ -140,14 +149,14 @@ try {
 ### 1. 添加详细日志
 
 ```javascript
-console.log("=== 测试开始 ===");
-console.log("脚本版本: 1.0");
-console.log("测试环境:", typeof RPAServiceModule);
-console.log("可用方法:", Object.keys(RPAServiceModule || {}));
+console.log('=== 测试开始 ===');
+console.log('脚本版本: 1.0');
+console.log('测试环境:', typeof RPAServiceModule);
+console.log('可用方法:', Object.keys(RPAServiceModule || {}));
 
 // 你的测试代码
 
-console.log("=== 测试结束 ===");
+console.log('=== 测试结束 ===');
 ```
 
 ### 2. 错误捕获
@@ -155,13 +164,13 @@ console.log("=== 测试结束 ===");
 ```javascript
 function safeExecute(testFunction, testName) {
   try {
-    console.log("开始执行:", testName);
+    console.log('开始执行:', testName);
     var result = testFunction();
-    console.log("执行成功:", testName, result);
+    console.log('执行成功:', testName, result);
     return result;
   } catch (error) {
-    console.error("执行失败:", testName, error);
-    Alert.alert("测试失败", testName + " 失败: " + error);
+    console.error('执行失败:', testName, error);
+    Alert.alert('测试失败', testName + ' 失败: ' + error);
     throw error;
   }
 }
@@ -176,12 +185,13 @@ var startTime = Date.now();
 
 var endTime = Date.now();
 var duration = endTime - startTime;
-console.log("执行耗时:", duration + "ms");
+console.log('执行耗时:', duration + 'ms');
 ```
 
 ## 📊 测试覆盖范围
 
 ### 已覆盖功能
+
 - ✅ RPA 服务启动
 - ✅ 系统设置页面访问
 - ✅ WiFi 设置页面访问
@@ -193,6 +203,7 @@ console.log("执行耗时:", duration + "ms");
 - ✅ 用户界面反馈
 
 ### 待添加测试
+
 - ⏳ 更多系统设置页面
 - ⏳ 复杂 UI 交互
 - ⏳ 文件系统操作
@@ -205,10 +216,13 @@ console.log("执行耗时:", duration + "ms");
 ### 常见问题
 
 1. **脚本不显示在列表中**
+
    - 检查文件是否成功推送: `adb shell ls -la /sdcard/rpa-scripts/`
-   - 重启应用: `adb shell am force-stop com.rpaapp && adb shell am start -n com.rpaapp/.MainActivity`
+   - 重启应用:
+     `adb shell am force-stop com.rpaapp && adb shell am start -n com.rpaapp/.MainActivity`
 
 2. **脚本执行失败**
+
    - 查看日志: `adb logcat -s ReactNativeJS`
    - 检查语法: 确保使用 ES5 语法
    - 验证权限: 确保应用有存储权限
@@ -227,4 +241,4 @@ console.log("执行耗时:", duration + "ms");
 
 ---
 
-通过这个统一的测试脚本目录，您可以更好地管理和测试 RPA App 的各项功能！🧪 
+通过这个统一的测试脚本目录，您可以更好地管理和测试 RPA App 的各项功能！🧪

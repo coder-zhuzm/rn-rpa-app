@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# 运行 lint-staged 进行代码检查和格式化
+npx lint-staged
+
+# 检查 TypeScript 类型
+echo "🔍 检查 TypeScript 类型..."
+npx tsc --noEmit
+
+echo "✅ Pre-commit 检查完成"

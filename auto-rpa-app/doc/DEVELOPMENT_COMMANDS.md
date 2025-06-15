@@ -12,6 +12,7 @@
 ## 🚀 环境准备
 
 ### 检查开发环境
+
 ```bash
 # 检查 React Native 环境
 npx react-native doctor
@@ -28,6 +29,7 @@ npm -v
 ```
 
 ### 环境变量设置
+
 ```bash
 # 设置 Java 17 (如果需要)
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-17.jdk/Contents/Home
@@ -45,6 +47,7 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 ## 🔧 项目构建命令
 
 ### 安装依赖
+
 ```bash
 # 安装 npm 依赖
 npm install
@@ -54,6 +57,7 @@ npm cache clean --force
 ```
 
 ### Android 构建
+
 ```bash
 # 进入 Android 目录
 cd android
@@ -72,6 +76,7 @@ cd ..
 ```
 
 ### React Native 构建
+
 ```bash
 # 构建 Android (自动安装到设备)
 npx react-native run-android
@@ -88,6 +93,7 @@ npx react-native start --reset-cache
 ## 📱 设备管理
 
 ### 模拟器操作
+
 ```bash
 # 列出可用的 AVD
 emulator -list-avds
@@ -100,6 +106,7 @@ emulator -avd Pixel_6 &
 ```
 
 ### 设备连接
+
 ```bash
 # 查看连接的设备
 adb devices
@@ -117,6 +124,7 @@ adb start-server
 ## 📦 应用安装与管理
 
 ### APK 安装
+
 ```bash
 # 安装 Debug APK
 adb -s emulator-5554 install -r android/app/build/outputs/apk/debug/app-debug.apk
@@ -129,6 +137,7 @@ adb -s emulator-5554 install -r -d android/app/build/outputs/apk/debug/app-debug
 ```
 
 ### 应用控制
+
 ```bash
 # 启动应用
 adb -s emulator-5554 shell am start -n com.rpaapp/.MainActivity
@@ -148,6 +157,7 @@ adb -s emulator-5554 uninstall com.rpaapp
 ## 🐛 调试命令
 
 ### 日志查看
+
 ```bash
 # 查看所有日志
 adb -s emulator-5554 logcat
@@ -166,6 +176,7 @@ adb -s emulator-5554 logcat > app_logs.txt
 ```
 
 ### 开发者菜单
+
 ```bash
 # 打开 React Native 开发者菜单 (摇一摇)
 adb -s emulator-5554 shell input keyevent 82
@@ -178,6 +189,7 @@ adb -s emulator-5554 shell input text "RR"
 ```
 
 ### Metro 开发服务器
+
 ```bash
 # 启动 Metro 服务器
 npx react-native start
@@ -194,6 +206,7 @@ npx react-native start --port 8082
 ## 🔍 文件系统操作
 
 ### 应用文件管理
+
 ```bash
 # 查看应用数据目录
 adb -s emulator-5554 shell ls -la /data/data/com.rpaapp/
@@ -209,6 +222,7 @@ adb -s emulator-5554 pull /data/data/com.rpaapp/files/Documents/rpa-scripts/scri
 ```
 
 ### 权限管理
+
 ```bash
 # 查看应用权限
 adb -s emulator-5554 shell dumpsys package com.rpaapp | grep permission
@@ -222,6 +236,7 @@ adb -s emulator-5554 shell pm grant com.rpaapp android.permission.WRITE_EXTERNAL
 ## 🚀 快速开发流程
 
 ### 完整构建流程
+
 ```bash
 # 1. 清理环境
 cd android && ./gradlew clean && cd ..
@@ -244,6 +259,7 @@ adb -s emulator-5554 shell am start -n com.rpaapp/.MainActivity
 ```
 
 ### 快速重新部署
+
 ```bash
 # 仅重新构建和安装 (不清理)
 cd android && ./gradlew assembleDebug && cd .. && \
@@ -252,6 +268,7 @@ adb -s emulator-5554 shell am start -n com.rpaapp/.MainActivity
 ```
 
 ### 热重载开发
+
 ```bash
 # 启动 Metro 服务器 (终端1)
 npx react-native start
@@ -267,6 +284,7 @@ npx react-native run-android
 ## 🧪 测试命令
 
 ### 脚本测试
+
 ```bash
 # 查看脚本执行日志
 adb -s emulator-5554 logcat -s ReactNativeJS:V | grep -i script
@@ -276,6 +294,7 @@ adb -s emulator-5554 logcat | grep -i RPA
 ```
 
 ### 性能测试
+
 ```bash
 # 查看应用内存使用
 adb -s emulator-5554 shell dumpsys meminfo com.rpaapp
@@ -289,6 +308,7 @@ adb -s emulator-5554 shell top | grep com.rpaapp
 ## 🔧 故障排除
 
 ### 常见问题解决
+
 ```bash
 # Metro 端口被占用
 lsof -ti:8081 | xargs kill -9
@@ -310,6 +330,7 @@ adb -s emulator-5554 reboot
 ```
 
 ### 重置开发环境
+
 ```bash
 # 完全重置项目
 npm cache clean --force
@@ -337,6 +358,7 @@ alias rpa-clean="cd android && ./gradlew clean && cd .. && npm cache clean --for
 ```
 
 使用别名后，开发流程变为:
+
 ```bash
 # 快速部署
 rpa-deploy
@@ -353,11 +375,13 @@ rpa-stop && rpa-start
 ## 📞 技术支持
 
 ### 有用的链接
+
 - [React Native 官方文档](https://reactnative.dev/docs/getting-started)
 - [Android 开发者文档](https://developer.android.com/docs)
 - [Hermes 引擎文档](https://hermesengine.dev/)
 
 ### 项目结构
+
 ```
 RPAApp/
 ├── android/                 # Android 原生代码
@@ -372,4 +396,4 @@ RPAApp/
 
 ---
 
-**💡 提示**: 将此文档保存为书签，开发时随时查阅！ 
+**💡 提示**: 将此文档保存为书签，开发时随时查阅！
