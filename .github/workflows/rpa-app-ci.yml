@@ -213,14 +213,21 @@ jobs:
     strategy:
       matrix:
         # 构建矩阵 - 可以同时构建多个版本
-        build-type: [debug, release]
-        exclude:
-          # 如果是PR，只构建debug版本
-          - build-type: ${{ github.event_name == 'pull_request' && 'release' }}
+        build-type: ${{ github.event_name == 'pull_request' && fromJSON('["debug"]') || fromJSON('["debug", "release"]') }}
 
     steps:
       - name: ⬇️ 检出代码
         uses: actions/checkout@v4
+
+      # 检查系统资源
+      - name: 💻 检查系统资源
+        run: |
+          echo "🖥️ 系统信息:"
+          echo "CPU: $(nproc) cores"
+          echo "内存: $(free -h | grep '^Mem:' | awk '{print $2}')"
+          echo "磁盘: $(df -h / | tail -1 | awk '{print $4}') 可用"
+          echo "Java版本: $(java -version 2>&1 | head -1)"
+          echo ""
 
       # 设置Java环境（Android构建需要）
       - name: ☕ 设置 JDK ${{ env.JAVA_VERSION }}
@@ -237,7 +244,7 @@ jobs:
         with:
           cmdline-tools-version: '11076708'  # 使用有效的参数
           accept-android-sdk-licenses: true
-          packages: 'platform-tools platforms;android-${{ env.ANDROID_API_LEVEL }} build-tools;33.0.0 ndk;25.1.8937393'
+          packages: 'platform-tools platforms;android-${{ env.ANDROID_API_LEVEL }} build-tools;33.0.0'
 
       - name: 🟢 设置 Node.js
         uses: actions/setup-node@v4
@@ -280,12 +287,36 @@ jobs:
       # 构建Android应用
       - name: 🔨 构建 Android APK (${{ matrix.build-type }})
         working-directory: auto-rpa-app/android
+        timeout-minutes: 30  # 设置超时时间
         run: |
           echo "🔨 开始构建 ${{ matrix.build-type }} 版本..."
+          
+          # 设置Gradle优化参数
+          export GRADLE_OPTS="-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError"
+          
+          # 检查gradle wrapper权限
+          chmod +x ./gradlew
+          
           if [ "${{ matrix.build-type }}" = "release" ]; then
-            ./gradlew assembleRelease --no-daemon --stacktrace
+            ./gradlew assembleRelease \
+              --no-daemon \
+              --stacktrace \
+              --info \
+              --parallel \
+              --build-cache \
+              -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=512m" \
+              -Dorg.gradle.parallel=true \
+              -Dorg.gradle.configureondemand=true
           else
-            ./gradlew assembleDebug --no-daemon --stacktrace
+            ./gradlew assembleDebug \
+              --no-daemon \
+              --stacktrace \
+              --info \
+              --parallel \
+              --build-cache \
+              -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=512m" \
+              -Dorg.gradle.parallel=true \
+              -Dorg.gradle.configureondemand=true
           fi
 
       # 上传构建产物
