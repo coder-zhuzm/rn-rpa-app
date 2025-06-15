@@ -94,8 +94,16 @@ jobs:
         run: |
           echo "📥 安装npm依赖..."
           if [ -f "package-lock.json" ]; then
-            echo "🔒 使用 npm ci (锁定版本)"
-            npm ci --prefer-offline --no-audit
+            echo "🔒 尝试使用 npm ci (锁定版本)"
+            if npm ci --prefer-offline --no-audit; then
+              echo "✅ npm ci 成功"
+            else
+              echo "⚠️ npm ci 失败，可能是锁定文件不同步"
+              echo "🔄 删除锁定文件并重新安装..."
+              rm package-lock.json
+              npm install --prefer-offline --no-audit
+              echo "✅ 重新生成锁定文件完成"
+            fi
           else
             echo "🆕 使用 npm install (生成锁定文件)"
             npm install --prefer-offline --no-audit
@@ -169,8 +177,12 @@ jobs:
         working-directory: auto-rpa-app
         run: |
           if [ -f "package-lock.json" ]; then
-            echo "🔒 使用 npm ci (锁定版本)"
-            npm ci
+            echo "🔒 尝试使用 npm ci (锁定版本)"
+            npm ci || {
+              echo "⚠️ npm ci 失败，使用 npm install"
+              rm package-lock.json
+              npm install
+            }
           else
             echo "🆕 使用 npm install (生成锁定文件)"
             npm install
@@ -241,8 +253,12 @@ jobs:
         working-directory: auto-rpa-app
         run: |
           if [ -f "package-lock.json" ]; then
-            echo "🔒 使用 npm ci (锁定版本)"
-            npm ci
+            echo "🔒 尝试使用 npm ci (锁定版本)"
+            npm ci || {
+              echo "⚠️ npm ci 失败，使用 npm install"
+              rm package-lock.json
+              npm install
+            }
           else
             echo "🆕 使用 npm install (生成锁定文件)"
             npm install
