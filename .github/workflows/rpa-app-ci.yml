@@ -1,482 +1,87 @@
-# 🤖 RPA App CI/CD Pipeline
-# 这是一个完整的GitHub Actions学习示例
-# 包含代码检查、构建、测试、发布等完整流程
+# 🤖 RPA App CI Pipeline
+# 代码质量检查和测试，不包含构建
 
-name: 🚀 RPA App CI/CD
+name: 🔍 RPA App CI
 
-# 触发条件 - 什么时候运行这个Action
+# 触发条件 - 只在真正需要时触发
 on:
-  # 推送到主分支时触发
-  push:
-    branches: [ main, develop ]
-  # 创建Pull Request时触发
+  # 只在 PR 时触发代码检查
   pull_request:
     branches: [ main ]
-  # 手动触发（在GitHub界面可以手动运行）
+    paths:
+      - 'auto-rpa-app/**'
+      - '.github/workflows/**'
+  # 手动触发
   workflow_dispatch:
-    inputs:
-      build_type:
-        description: '构建类型'
-        required: true
-        default: 'debug'
-        type: choice
-        options:
-        - debug
-        - release
-      skip_tests:
-        description: '跳过测试'
-        required: false
-        default: false
-        type: boolean
 
-# 环境变量 - 整个workflow都可以使用
+# 环境变量
 env:
   NODE_VERSION: '18'
-  JAVA_VERSION: '17'  # 更新到JDK 17，Android SDK工具要求
-  ANDROID_API_LEVEL: '33'
 
-# 任务定义
 jobs:
-  # 第一个任务：代码质量检查
+  # 代码质量检查
   code-quality:
     name: 📋 代码质量检查
     runs-on: ubuntu-latest
     
     steps:
-      # Step 1: 检出代码
       - name: ⬇️ 检出代码
         uses: actions/checkout@v4
-        with:
-          # 获取完整的git历史，用于代码分析
-          fetch-depth: 0
 
-      # Step 2: 设置Node.js环境
-      - name: 🟢 设置 Node.js ${{ env.NODE_VERSION }}
+      - name: 🟢 设置 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      # Step 2.5: 手动缓存npm依赖
-      - name: 📦 缓存 npm 依赖
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('auto-rpa-app/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      # Step 3: 检查文件和安装依赖
-      - name: 🔍 检查项目文件
-        working-directory: auto-rpa-app
-        run: |
-          echo "📂 当前目录: $(pwd)"
-          echo "📋 文件列表:"
-          ls -la
-          echo ""
-          echo "🔍 检查关键文件:"
-          if [ -f "package.json" ]; then
-            echo "✅ package.json 存在"
-            cat package.json | jq '.name, .version'
-          else
-            echo "❌ package.json 不存在"
-          fi
-          
-          if [ -f "package-lock.json" ]; then
-            echo "✅ package-lock.json 存在"
-            echo "📊 大小: $(ls -lh package-lock.json | awk '{print $5}')"
-          else
-            echo "❌ package-lock.json 不存在"
-            echo "🔧 将使用 npm install 代替 npm ci"
-          fi
+          cache: 'npm'
+          cache-dependency-path: auto-rpa-app/package-lock.json
 
       - name: 📦 安装依赖
         working-directory: auto-rpa-app
         run: |
-          echo "📥 安装npm依赖..."
           if [ -f "package-lock.json" ]; then
-            echo "🔒 尝试使用 npm ci (锁定版本)"
-            if npm ci --prefer-offline --no-audit; then
-              echo "✅ npm ci 成功"
-            else
-              echo "⚠️ npm ci 失败，可能是锁定文件不同步"
-              echo "🔄 删除锁定文件并重新安装..."
-              rm package-lock.json
-              npm install --prefer-offline --no-audit
-              echo "✅ 重新生成锁定文件完成"
-            fi
+            npm ci
           else
-            echo "🆕 使用 npm install (生成锁定文件)"
-            npm install --prefer-offline --no-audit
+            npm install
           fi
 
-      # Step 4: 代码格式检查
       - name: 🎨 代码格式检查
         working-directory: auto-rpa-app
-        run: |
-          echo "🔍 检查代码格式..."
-          npm run format:check || {
-            echo "❌ 代码格式不符合规范"
-            echo "💡 运行 'npm run format' 修复格式问题"
-            exit 1
-          }
+        run: npm run format:check
 
-      # Step 5: ESLint检查
-      - name: 🔍 ESLint 代码检查
+      - name: 🔍 ESLint 检查
         working-directory: auto-rpa-app
-        continue-on-error: true
-        run: |
-          echo "🔍 运行ESLint检查..."
-          npm run lint || {
-            echo "⚠️ ESLint检查发现问题"
-            echo "💡 运行 'npm run lint:fix' 尝试自动修复"
-            echo "📋 这不会阻止构建继续进行"
-          }
+        run: npm run lint
 
-      # Step 6: TypeScript类型检查
       - name: 🔷 TypeScript 类型检查
         working-directory: auto-rpa-app
-        run: |
-          echo "🔍 TypeScript类型检查..."
-          npx tsc --noEmit
+        run: npx tsc --noEmit
 
-      # Step 7: 上传代码检查报告
-      - name: 📊 上传代码检查报告
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-quality-report
-          path: |
-            auto-rpa-app/eslint-report.json
-            auto-rpa-app/prettier-report.json
-          retention-days: 7
-
-  # 第二个任务：单元测试
+  # 单元测试
   test:
     name: 🧪 单元测试
     runs-on: ubuntu-latest
-    needs: code-quality  # 依赖代码质量检查通过
-    if: ${{ !inputs.skip_tests }}  # 如果手动触发时选择跳过测试，则不运行
-
-    steps:
-      - name: ⬇️ 检出代码
-        uses: actions/checkout@v4
-
-      - name: 🟢 设置 Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: 📦 缓存 npm 依赖
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('auto-rpa-app/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: 📦 安装依赖
-        working-directory: auto-rpa-app
-        run: |
-          if [ -f "package-lock.json" ]; then
-            echo "🔒 尝试使用 npm ci (锁定版本)"
-            npm ci || {
-              echo "⚠️ npm ci 失败，使用 npm install"
-              rm package-lock.json
-              npm install
-            }
-          else
-            echo "🆕 使用 npm install (生成锁定文件)"
-            npm install
-          fi
-
-      # 运行Jest测试
-      - name: 🧪 运行单元测试
-        working-directory: auto-rpa-app
-        run: |
-          echo "🧪 运行Jest单元测试..."
-          npm test -- --coverage --watchAll=false --passWithNoTests
-
-      # 上传测试覆盖率报告
-      - name: 📊 上传测试覆盖率
-        uses: codecov/codecov-action@v3
-        with:
-          directory: auto-rpa-app/coverage
-          flags: unittests
-          name: rpa-app-coverage
-
-  # 第三个任务：Android构建
-  build-android:
-    name: 🤖 Android 构建
-    runs-on: ubuntu-latest
-    needs: [code-quality, test]
-    timeout-minutes: 45  # 增加整个任务的超时时间
+    needs: code-quality
     
-    strategy:
-      matrix:
-        # 构建矩阵 - 可以同时构建多个版本
-        build-type: ${{ github.event_name == 'pull_request' && fromJSON('["debug"]') || fromJSON('["debug", "release"]') }}
-
     steps:
       - name: ⬇️ 检出代码
         uses: actions/checkout@v4
-
-      # 检查系统资源
-      - name: 💻 检查系统资源
-        run: |
-          echo "🖥️ 系统信息:"
-          echo "CPU: $(nproc) cores"
-          echo "内存: $(free -h | grep '^Mem:' | awk '{print $2}')"
-          echo "磁盘: $(df -h / | tail -1 | awk '{print $4}') 可用"
-          echo "Java版本: $(java -version 2>&1 | head -1)"
-          echo ""
-
-      # 设置Java环境（Android构建需要）
-      - name: ☕ 设置 JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'temurin'
-
-      # 设置Android SDK
-      - name: 🤖 设置 Android SDK
-        uses: android-actions/setup-android@v3
-        env:
-          SKIP_JDK_VERSION_CHECK: true  # 跳过JDK版本检查
-        with:
-          cmdline-tools-version: '11076708'  # 使用有效的参数
-          accept-android-sdk-licenses: true
-          packages: 'platform-tools platforms;android-${{ env.ANDROID_API_LEVEL }} build-tools;33.0.0'
 
       - name: 🟢 设置 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: 📦 缓存 npm 依赖
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('auto-rpa-app/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          cache: 'npm'
+          cache-dependency-path: auto-rpa-app/package-lock.json
 
       - name: 📦 安装依赖
         working-directory: auto-rpa-app
         run: |
           if [ -f "package-lock.json" ]; then
-            echo "🔒 尝试使用 npm ci (锁定版本)"
-            npm ci || {
-              echo "⚠️ npm ci 失败，使用 npm install"
-              rm package-lock.json
-              npm install
-            }
+            npm ci
           else
-            echo "🆕 使用 npm install (生成锁定文件)"
             npm install
           fi
 
-      # 增强的Gradle缓存配置
-      - name: 📦 缓存 Gradle
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ~/.gradle/daemon
-            auto-rpa-app/android/.gradle
-            auto-rpa-app/android/app/build/intermediates
-            auto-rpa-app/android/app/build/tmp
-          key: gradle-${{ runner.os }}-${{ hashFiles('auto-rpa-app/android/gradle/wrapper/gradle-wrapper.properties', 'auto-rpa-app/android/build.gradle', 'auto-rpa-app/android/app/build.gradle') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
-
-      # 预配置Gradle环境
-      - name: ⚙️ 配置 Gradle 环境
-        working-directory: auto-rpa-app/android
-        run: |
-          echo "⚙️ 配置Gradle环境..."
-          
-          # 创建最简洁兼容的gradle.properties文件
-          cat > gradle.properties << EOF
-          # 基础优化配置 - 只使用稳定的选项
-          org.gradle.parallel=true
-          org.gradle.caching=true
-          org.gradle.daemon=true
-                     org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
-          
-          # Android基础配置
-          android.useAndroidX=true
-          android.enableJetifier=true
-          
-          # Kotlin增量编译
-          kotlin.incremental=true
-          EOF
-          
-          # 检查gradle wrapper权限
-          chmod +x ./gradlew
-          
-          # 预热Gradle守护进程
-          echo "🔥 预热Gradle守护进程..."
-          ./gradlew --version
-
-      # 清理和准备构建环境
-      - name: 🧹 清理构建环境
-        working-directory: auto-rpa-app/android
-        run: |
-          echo "🧹 清理之前的构建产物..."
-          ./gradlew clean --no-daemon --quiet
-          
-          # 清理node_modules中可能的冲突文件
-          echo "🔍 检查react-native-http-bridge状态..."
-          if [ -d "../node_modules/react-native-http-bridge" ]; then
-            echo "✅ react-native-http-bridge 存在"
-            ls -la ../node_modules/react-native-http-bridge/android/
-          else
-            echo "❌ react-native-http-bridge 不存在"
-          fi
-
-      # 构建Android应用
-      - name: 🔨 构建 Android APK (${{ matrix.build-type }})
-        working-directory: auto-rpa-app/android
-        timeout-minutes: 35  # 设置构建步骤的超时时间
-        run: |
-          echo "🔨 开始构建 ${{ matrix.build-type }} 版本..."
-          
-                     # 设置基础环境变量
-           export GRADLE_OPTS="-Xmx4g -XX:MaxMetaspaceSize=512m"
-          
-          # 显示内存使用情况
-          echo "💾 构建前内存状态:"
-          free -h
-          
-                     # 使用最简单稳定的构建命令
-           if [ "${{ matrix.build-type }}" = "release" ]; then
-             echo "🚀 构建Release版本..."
-             ./gradlew assembleRelease --no-daemon --stacktrace
-           else
-             echo "🔧 构建Debug版本..."
-             ./gradlew assembleDebug --no-daemon --stacktrace
-           fi
-          
-          # 显示构建后内存状态
-          echo "💾 构建后内存状态:"
-          free -h
-
-      # 验证构建产物
-      - name: ✅ 验证构建产物
-        working-directory: auto-rpa-app/android
-        run: |
-          echo "📱 验证APK构建结果："
-          
-          if [ "${{ matrix.build-type }}" = "release" ]; then
-            APK_PATH="app/build/outputs/apk/release/app-release.apk"
-          else
-            APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
-          fi
-          
-          if [ -f "$APK_PATH" ]; then
-            echo "✅ APK构建成功: $APK_PATH"
-            ls -lh "$APK_PATH"
-            
-            # 显示APK基本信息
-            if command -v aapt >/dev/null 2>&1; then
-              echo "📋 APK信息:"
-              aapt dump badging "$APK_PATH" | head -5
-            fi
-          else
-            echo "❌ APK构建失败: $APK_PATH 不存在"
-            echo "📂 查看输出目录:"
-            find app/build/outputs -name "*.apk" -o -name "*.aab" | head -10
-            exit 1
-          fi
-
-      # 上传构建产物
-      - name: 📤 上传 APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: rpa-app-${{ matrix.build-type }}-${{ github.sha }}
-          path: |
-            auto-rpa-app/android/app/build/outputs/apk/**/*.apk
-            auto-rpa-app/android/app/build/outputs/mapping/**/mapping.txt
-          retention-days: 30
-
-      # 构建失败时的诊断信息
-      - name: 🔍 构建失败诊断
-        if: failure()
-        working-directory: auto-rpa-app/android
-        run: |
-          echo "❌ 构建失败，收集诊断信息..."
-          
-          echo "📂 项目结构:"
-          find . -name "build.gradle" -o -name "*.properties" | head -10
-          
-          echo "📋 Gradle版本信息:"
-          ./gradlew --version || true
-          
-          echo "💾 系统资源状态:"
-          free -h
-          df -h
-          
-          echo "📝 最近的构建日志:"
-          find . -name "*.log" -newer gradle.properties 2>/dev/null | head -5 | xargs tail -50 || true
-          
-          echo "🔍 检查依赖状态:"
-          ls -la ../node_modules/react-native-http-bridge/android/ || true
-
-
-  # 第五个任务：通知
-  notify:
-    name: 📢 构建通知
-    runs-on: ubuntu-latest
-    needs: [code-quality, test, build-android]
-    if: always()  # 无论成功失败都运行
-
-    steps:
-      - name: 📊 构建结果总结
-        run: |
-          echo "📊 构建流水线执行完成"
-          echo "代码质量检查: ${{ needs.code-quality.result }}"
-          echo "单元测试: ${{ needs.test.result }}"
-          echo "Android构建: ${{ needs.build-android.result }}"
-          
-          if [ "${{ needs.build-android.result }}" = "failure" ]; then
-            echo "❌ Android构建失败，请检查构建日志"
-          elif [ "${{ needs.build-android.result }}" = "success" ]; then
-            echo "✅ Android构建成功"
-          fi
-
-      # 构建失败时创建Issue
-      - name: 🐛 创建构建失败Issue
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const title = `🚨 构建失败 - ${context.workflow} #${context.runNumber}`;
-            const body = `
-            ## 构建失败报告
-            
-            **工作流**: ${context.workflow}
-            **运行编号**: ${context.runNumber}
-            **提交**: ${context.sha}
-            **分支**: ${context.ref}
-            **触发者**: ${context.actor}
-            
-            ### 失败的任务
-            - 代码质量检查: ${{ needs.code-quality.result }}
-            - 单元测试: ${{ needs.test.result }}
-            - Android构建: ${{ needs.build-android.result }}
-            
-            ### 查看详情
-            [点击查看构建日志](${context.payload.repository.html_url}/actions/runs/${context.runId})
-            
-            ---
-            *此Issue由GitHub Actions自动创建*
-            `;
-            
-            github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: title,
-              body: body,
-              labels: ['bug', 'ci/cd', 'auto-generated']
-            }); 
+      - name: 🧪 运行测试
+        working-directory: auto-rpa-app
+        run: npm test -- --coverage --watchAll=false --passWithNoTests 
