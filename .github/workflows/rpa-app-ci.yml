@@ -65,14 +65,41 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      # Step 3: 安装依赖
+      # Step 3: 检查文件和安装依赖
+      - name: 🔍 检查项目文件
+        working-directory: auto-rpa-app
+        run: |
+          echo "📂 当前目录: $(pwd)"
+          echo "📋 文件列表:"
+          ls -la
+          echo ""
+          echo "🔍 检查关键文件:"
+          if [ -f "package.json" ]; then
+            echo "✅ package.json 存在"
+            cat package.json | jq '.name, .version'
+          else
+            echo "❌ package.json 不存在"
+          fi
+          
+          if [ -f "package-lock.json" ]; then
+            echo "✅ package-lock.json 存在"
+            echo "📊 大小: $(ls -lh package-lock.json | awk '{print $5}')"
+          else
+            echo "❌ package-lock.json 不存在"
+            echo "🔧 将使用 npm install 代替 npm ci"
+          fi
+
       - name: 📦 安装依赖
         working-directory: auto-rpa-app
         run: |
-          echo "🔍 检查package.json..."
-          cat package.json | jq '.name, .version'
           echo "📥 安装npm依赖..."
-          npm ci --prefer-offline --no-audit
+          if [ -f "package-lock.json" ]; then
+            echo "🔒 使用 npm ci (锁定版本)"
+            npm ci --prefer-offline --no-audit
+          else
+            echo "🆕 使用 npm install (生成锁定文件)"
+            npm install --prefer-offline --no-audit
+          fi
 
       # Step 4: 代码格式检查
       - name: 🎨 代码格式检查
@@ -140,7 +167,14 @@ jobs:
 
       - name: 📦 安装依赖
         working-directory: auto-rpa-app
-        run: npm ci
+        run: |
+          if [ -f "package-lock.json" ]; then
+            echo "🔒 使用 npm ci (锁定版本)"
+            npm ci
+          else
+            echo "🆕 使用 npm install (生成锁定文件)"
+            npm install
+          fi
 
       # 运行Jest测试
       - name: 🧪 运行单元测试
@@ -205,7 +239,14 @@ jobs:
 
       - name: 📦 安装依赖
         working-directory: auto-rpa-app
-        run: npm ci
+        run: |
+          if [ -f "package-lock.json" ]; then
+            echo "🔒 使用 npm ci (锁定版本)"
+            npm ci
+          else
+            echo "🆕 使用 npm install (生成锁定文件)"
+            npm install
+          fi
 
       # 缓存Gradle依赖
       - name: 📦 缓存 Gradle

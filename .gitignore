@@ -95,7 +95,7 @@ lerna-debug.log*
 .pnpm-debug.log*
 
 # Package managers
-package-lock.json
+# package-lock.json  # 注释掉，保留锁定文件用于CI/CD
 yarn.lock
 pnpm-lock.yaml
 
